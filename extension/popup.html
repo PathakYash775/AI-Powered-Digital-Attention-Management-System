@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attention Activity Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <h1>Attention Tracker</h1>
+    <p id="state" class="state">Checking status…</p>
+
+    <form id="pairing" hidden>
+      <label for="code">Pairing code (from the web app)</label>
+      <input id="code" maxlength="8" autocomplete="off" spellcheck="false" required>
+      <label for="name">Device name</label>
+      <input id="name" maxlength="60" value="Chrome" autocomplete="off" required>
+      <button type="submit">Connect</button>
+    </form>
+
+    <section id="controls" hidden>
+      <button id="toggle" type="button">Start tracking</button>
+      <div class="stat"><span>Device</span><strong id="device"></strong></div>
+      <div class="stat"><span>Events waiting to sync</span><strong id="pending">0</strong></div>
+      <div class="stat"><span>Backend status</span><strong id="sync"></strong></div>
+      <div class="stat" id="droppedRow" hidden><span>Events dropped</span><strong id="dropped">0</strong></div>
+      <button id="syncNow" class="secondary" type="button">Sync now</button>
+      <button id="disconnect" class="secondary" type="button">Disconnect</button>
+    </section>
+
+    <p id="message" class="message" role="status"></p>
+    <p class="note">Records website domains and timing only. Page titles are read on this device to spot unread-count badges such as "(3) Inbox" and are never stored or sent.</p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

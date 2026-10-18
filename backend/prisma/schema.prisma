@@ -1,0 +1,222 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum OccupationType {
+  student
+  professional
+}
+
+enum GoalType {
+  focus_minutes
+  max_screen_minutes
+  max_context_switches
+}
+
+enum GoalPeriod {
+  daily
+  weekly
+}
+
+enum DevicePlatform {
+  chrome
+}
+
+enum Category {
+  productive
+  social
+  communication
+  entertainment
+  other
+}
+
+enum FocusSessionStatus {
+  active
+  completed
+  abandoned
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  profile             Profile?
+  refreshTokens       RefreshToken[]
+  goals               Goal[]
+  devices             Device[]
+  pairingCodes        PairingCode[]
+  activityLogs        ActivityLog[]
+  contextSwitches     ContextSwitch[]
+  notificationEvents  NotificationEvent[]
+  focusSessions       FocusSession[]
+  dailyUsageStats     DailyUsageStat[]
+  hourlyUsagePatterns HourlyUsagePattern[]
+}
+
+model Profile {
+  userId         String         @id
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName    String
+  timezone       String         @default("UTC")
+  occupationType OccupationType @default(student)
+  workStart      String         @default("09:00")
+  workEnd        String         @default("17:00")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Goal {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        GoalType
+  period      GoalPeriod
+  targetValue Int
+  createdAt   DateTime   @default(now())
+
+  @@index([userId])
+}
+
+model Device {
+  id         String         @id @default(uuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  platform   DevicePlatform @default(chrome)
+  tokenHash  String         @unique
+  lastSeenAt DateTime?
+  revokedAt  DateTime?
+  isSample   Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+
+  activityLogs       ActivityLog[]
+  contextSwitches    ContextSwitch[]
+  notificationEvents NotificationEvent[]
+
+  @@index([userId])
+}
+
+model PairingCode {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model DomainCategory {
+  id       String   @id @default(uuid())
+  pattern  String   @unique
+  category Category
+}
+
+model ActivityLog {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId      String
+  device        Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  clientEventId String
+  domain        String
+  category      Category
+  startedAt     DateTime
+  endedAt       DateTime
+  durationSec   Int
+  idle          Boolean
+
+  @@unique([deviceId, clientEventId])
+  @@index([userId, startedAt(sort: Desc)])
+}
+
+model ContextSwitch {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId      String
+  device        Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  clientEventId String
+  fromApp       String
+  toApp         String
+  switchedAt    DateTime
+
+  @@unique([deviceId, clientEventId])
+  @@index([userId, switchedAt(sort: Desc)])
+}
+
+model NotificationEvent {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId      String
+  device        Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  clientEventId String
+  sourceApp     String
+  receivedAt    DateTime
+
+  @@unique([deviceId, clientEventId])
+  @@index([userId, receivedAt(sort: Desc)])
+}
+
+model FocusSession {
+  id                String             @id @default(uuid())
+  userId            String
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plannedMin        Int
+  startedAt         DateTime
+  endedAt           DateTime?
+  status            FocusSessionStatus
+  interruptionCount Int                @default(0)
+  createdAt         DateTime           @default(now())
+
+  @@index([userId, startedAt(sort: Desc)])
+}
+
+model DailyUsageStat {
+  userId            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              String
+  totalScreenSec    Int
+  activeSec         Int
+  idleSec           Int
+  switchCount       Int
+  notificationCount Int
+  topSites          Json
+  byCategory        Json
+
+  @@id([userId, date])
+}
+
+model HourlyUsagePattern {
+  userId            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              String
+  hour              Int
+  activeSec         Int
+  idleSec           Int
+  switchCount       Int
+  notificationCount Int
+
+  @@id([userId, date, hour])
+}

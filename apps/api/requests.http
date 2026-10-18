@@ -1,0 +1,156 @@
+### Variables
+@baseUrl = http://localhost:3000
+@api = http://localhost:3000/api/v1
+@email = test.user@example.com
+@password = SecurePass123!
+@displayName = Test User
+
+### 1. Health Liveness Probe
+GET {{baseUrl}}/healthz
+
+### 2. Readiness Probe (Database & AI Service)
+GET {{baseUrl}}/readyz
+
+### 3. Status Page
+GET {{baseUrl}}/
+
+### 4. Register
+# @name register
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "displayName": "{{displayName}}"
+}
+
+### Store Access Token from Register
+@accessToken = {{register.response.body.accessToken}}
+
+### 5. Login
+# @name login
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 6. Refresh Token (Rotates HTTP-only cookie)
+# @name refresh
+POST {{api}}/auth/refresh
+
+### 7. Get Profile
+GET {{api}}/profile
+Authorization: Bearer {{accessToken}}
+
+### 8. Update Profile
+PATCH {{api}}/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "displayName": "Updated User",
+  "timezone": "Asia/Kolkata",
+  "occupationType": "professional",
+  "workStart": "10:00",
+  "workEnd": "18:00"
+}
+
+### 9. Get Goals
+GET {{api}}/goals
+Authorization: Bearer {{accessToken}}
+
+### 10. Create Goal
+# @name createGoal
+POST {{api}}/goals
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "focus_minutes",
+  "period": "daily",
+  "targetValue": 120
+}
+
+### 11. Request Device Pairing Code
+# @name pairingCode
+POST {{api}}/devices/pairing-code
+Authorization: Bearer {{accessToken}}
+
+### Store Pairing Code
+@code = {{pairingCode.response.body.code}}
+
+### 12. Pair Device (Public endpoint)
+# @name pairDevice
+POST {{api}}/devices/pair
+Content-Type: application/json
+
+{
+  "code": "{{code}}",
+  "deviceName": "Chrome Work Laptop"
+}
+
+### Store Device Token
+@deviceToken = {{pairDevice.response.body.deviceToken}}
+
+### 13. Ingest Activity Telemetry (Device Token)
+POST {{api}}/ingest/activity
+Authorization: Bearer {{deviceToken}}
+Content-Type: application/json
+
+{
+  "events": [
+    {
+      "clientEventId": "evt-001",
+      "domain": "github.com",
+      "startedAt": "2026-10-17T06:00:00.000Z",
+      "endedAt": "2026-10-17T06:30:00.000Z",
+      "idle": false
+    }
+  ]
+}
+
+### 14. Ingest Context Switches (Device Token)
+POST {{api}}/ingest/switches
+Authorization: Bearer {{deviceToken}}
+Content-Type: application/json
+
+{
+  "events": [
+    {
+      "clientEventId": "sw-001",
+      "fromApp": "Visual Studio Code",
+      "toApp": "Google Chrome",
+      "switchedAt": "2026-10-17T06:15:00.000Z"
+    }
+  ]
+}
+
+### 15. Ingest Notification Events (Device Token)
+POST {{api}}/ingest/notifications
+Authorization: Bearer {{deviceToken}}
+Content-Type: application/json
+
+{
+  "events": [
+    {
+      "clientEventId": "notif-001",
+      "sourceApp": "Slack",
+      "receivedAt": "2026-10-17T06:20:00.000Z"
+    }
+  ]
+}
+
+### 16. Ingest Heartbeat
+POST {{api}}/ingest/heartbeat
+Authorization: Bearer {{deviceToken}}
+
+### 17. Get Activity Summary
+GET {{api}}/activity/summary?date=2026-10-17
+Authorization: Bearer {{accessToken}}
+
+### 18. Logout (Clears refresh cookie)
+POST {{api}}/auth/logout

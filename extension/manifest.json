@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Attention Activity Tracker",
+  "version": "0.2.0",
+  "minimum_chrome_version": "103",
+  "description": "Records website usage, tab switches and unread-badge notifications for the Digital Attention Management System.",
+  "permissions": ["tabs", "storage", "idle", "alarms"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://127.0.0.1:3000/*",
+    "http://localhost:8000/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_title": "Attention Activity Tracker",
+    "default_popup": "popup.html"
+  }
+}

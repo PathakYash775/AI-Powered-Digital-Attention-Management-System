@@ -1,0 +1,103 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.legendIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.barIndicator {
+  width: 12px;
+  height: 6px;
+  border-radius: 2px;
+  background-color: var(--color-primary);
+}
+
+.switchIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+}
+
+.barsContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+  height: 180px;
+  padding-top: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.barColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+.barColumn:hover .barFill {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
+.switchBadge {
+  position: absolute;
+  top: -20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.barTrack {
+  width: 100%;
+  max-width: 28px;
+  height: 140px;
+  background-color: var(--color-neutral-subtle);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.barFill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--color-primary), #1d4ed8);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hourLabel {
+  margin-top: var(--space-2);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.footerNote {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  font-style: italic;
+}
