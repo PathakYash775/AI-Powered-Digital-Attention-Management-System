@@ -113,4 +113,84 @@ export const devicesService = {
 
     logger.info({ deviceId: id, userId }, 'Device revoked');
   },
+
+  async getExtensionStatus(userId: string) {
+    const activeDevice = await prisma.device.findFirst({
+      where: { userId, revokedAt: null },
+      orderBy: { lastSeenAt: 'desc' },
+      select: { id: true, name: true, platform: true, lastSeenAt: true },
+    });
+
+    const recentThreshold = new Date(Date.now() - 60 * 1000);
+    const isRecentlyActive = Boolean(activeDevice?.lastSeenAt && activeDevice.lastSeenAt >= recentThreshold);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [activityCount, switchCount, lastActivity] = await Promise.all([
+      prisma.activityLog.count({
+        where: { userId, startedAt: { gte: todayStart } },
+      }),
+      prisma.contextSwitch.count({
+        where: { userId, switchedAt: { gte: todayStart } },
+      }),
+      prisma.activityLog.findFirst({
+        where: { userId },
+        orderBy: { endedAt: 'desc' },
+        select: { domain: true, endedAt: true, durationSec: true },
+      }),
+    ]);
+
+    return {
+      connected: isRecentlyActive,
+      activeDevice,
+      todayStats: {
+        activityCount,
+        switchCount,
+        lastDomain: lastActivity?.domain ?? null,
+        lastEventAt: lastActivity?.endedAt ? lastActivity.endedAt.toISOString() : null,
+      },
+      extensionName: 'Web Activity Time Tracker',
+      version: '2.5.0',
+      syncEndpoint: 'http://127.0.0.1:8000/api/v1/ingest',
+    };
+  },
+
+  async autoLinkDevice(userId: string, deviceName = 'Web Activity Time Tracker (Chrome)') {
+    let device = await prisma.device.findFirst({
+      where: { userId, name: deviceName, revokedAt: null },
+    });
+
+    if (!device) {
+      const rawToken = generateDeviceToken();
+      const tokenHash = hashToken(rawToken);
+      device = await prisma.device.create({
+        data: {
+          userId,
+          name: deviceName,
+          platform: 'chrome',
+          tokenHash,
+          lastSeenAt: new Date(),
+        },
+      });
+      return {
+        deviceId: device.id,
+        name: device.name,
+        deviceToken: rawToken,
+        created: true,
+      };
+    }
+
+    await prisma.device.update({
+      where: { id: device.id },
+      data: { lastSeenAt: new Date() },
+    });
+
+    return {
+      deviceId: device.id,
+      name: device.name,
+      created: false,
+    };
+  },
 };
+

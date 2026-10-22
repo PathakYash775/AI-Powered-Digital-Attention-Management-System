@@ -44,6 +44,34 @@ devicesRouter.post(
 );
 
 devicesRouter.get(
+  '/status',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getUserId(req);
+      const status = await devicesService.getExtensionStatus(userId);
+      res.status(200).json(status);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+devicesRouter.post(
+  '/auto-link',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getUserId(req);
+      const result = await devicesService.autoLinkDevice(userId);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+devicesRouter.get(
   '/',
   requireAuth,
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {

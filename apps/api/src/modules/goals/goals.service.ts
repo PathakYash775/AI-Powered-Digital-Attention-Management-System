@@ -7,6 +7,7 @@ const goalSelect = {
   type: true,
   period: true,
   targetValue: true,
+  customName: true,
 } as const;
 
 export const goalsService = {
@@ -33,6 +34,7 @@ export const goalsService = {
         type: input.type,
         period: input.period,
         targetValue: input.targetValue,
+        customName: input.customName ?? null,
       },
       select: goalSelect,
     });
@@ -53,6 +55,7 @@ export const goalsService = {
         ...(input.type !== undefined && { type: input.type }),
         ...(input.period !== undefined && { period: input.period }),
         ...(input.targetValue !== undefined && { targetValue: input.targetValue }),
+        ...(input.customName !== undefined && { customName: input.customName }),
       },
       select: goalSelect,
     });

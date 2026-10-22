@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { DeviceItem, PairingCodeResponse } from './types';
+import type { DeviceItem, PairingCodeResponse, ExtensionStatusResponse } from './types';
 
 export const devicesApi = {
   async getDevices(): Promise<DeviceItem[]> {
@@ -16,4 +16,15 @@ export const devicesApi = {
     const res = await apiClient.delete<{ success: boolean; message: string }>(`/devices/${id}`);
     return res.data;
   },
+
+  async getExtensionStatus(): Promise<ExtensionStatusResponse> {
+    const res = await apiClient.get<ExtensionStatusResponse>('/devices/status');
+    return res.data;
+  },
+
+  async autoLink(): Promise<{ deviceId: string; name: string; created: boolean }> {
+    const res = await apiClient.post<{ deviceId: string; name: string; created: boolean }>('/devices/auto-link');
+    return res.data;
+  },
 };
+

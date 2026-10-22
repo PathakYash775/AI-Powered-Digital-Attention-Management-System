@@ -4,6 +4,7 @@ export const goalTypeEnum = z.enum([
   'focus_minutes',
   'max_screen_minutes',
   'max_context_switches',
+  'custom',
 ]);
 
 export const goalPeriodEnum = z.enum(['daily', 'weekly']);
@@ -13,6 +14,7 @@ export const createGoalSchema = z
     type: goalTypeEnum,
     period: goalPeriodEnum,
     targetValue: z.number().int().min(1).max(10080),
+    customName: z.string().trim().min(1).max(100).optional().nullable(),
   })
   .strict();
 
@@ -21,6 +23,7 @@ export const updateGoalSchema = z
     type: goalTypeEnum.optional(),
     period: goalPeriodEnum.optional(),
     targetValue: z.number().int().min(1).max(10080).optional(),
+    customName: z.string().trim().min(1).max(100).optional().nullable(),
   })
   .strict();
 

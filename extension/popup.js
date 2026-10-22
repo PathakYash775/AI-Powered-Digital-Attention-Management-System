@@ -1,36 +1,35 @@
-const $ = id => document.getElementById(id);
-const messageEl = $("message");
+const statusEl = document.getElementById("status-text");
+const statusDot = document.getElementById("status-dot");
+const toggleButton = document.getElementById("toggle");
+const apiStatusEl = document.getElementById("api-status");
 
-function render(s) {
-  $("pairing").hidden = s.paired;
-  $("controls").hidden = !s.paired;
-  $("state").textContent = !s.paired ? "Not connected" : s.enabled ? "Tracking is ON" : "Tracking is OFF";
-  $("toggle").textContent = s.enabled ? "Stop tracking" : "Start tracking";
-  $("device").textContent = s.deviceName;
-  $("pending").textContent = String(s.pending);
-  $("sync").textContent = s.sync;
-  $("droppedRow").hidden = s.dropped === 0;
-  $("dropped").textContent = String(s.dropped);
+async function checkApi() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/healthz", { method: "GET" });
+    if (res.ok) {
+      apiStatusEl.textContent = "● API Online: 127.0.0.1:8000";
+      apiStatusEl.style.color = "#15803d";
+      apiStatusEl.style.borderColor = "#bbf7d0";
+      apiStatusEl.style.background = "#f0fdf4";
+      return;
+    }
+  } catch {}
+  apiStatusEl.textContent = "○ API: http://127.0.0.1:8000/api/activity";
 }
 
-async function call(msg) {
-  const reply = await chrome.runtime.sendMessage(msg);
-  messageEl.textContent = reply?.ok ? "" : reply?.error ?? "Something went wrong.";
-  render(reply?.ok ? reply : await chrome.runtime.sendMessage({ type: "GET_STATUS" }));
-  return reply?.ok;
+async function render() {
+  const { trackingEnabled = true } = await chrome.storage.local.get("trackingEnabled");
+  statusEl.textContent = trackingEnabled ? "Tracking is Active (ON)" : "Tracking is Paused (OFF)";
+  statusDot.classList.toggle("on", trackingEnabled);
+  toggleButton.textContent = trackingEnabled ? "Pause tracking" : "Start tracking";
+  toggleButton.classList.toggle("stop", trackingEnabled);
+  checkApi();
 }
 
-$("pairing").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (await call({ type: "PAIR", code: $("code").value, deviceName: $("name").value })) $("code").value = "";
+toggleButton.addEventListener("click", async () => {
+  const { trackingEnabled = true } = await chrome.storage.local.get("trackingEnabled");
+  await chrome.storage.local.set({ trackingEnabled: !trackingEnabled });
+  await render();
 });
 
-$("toggle").addEventListener("click", async () => {
-  const s = await chrome.runtime.sendMessage({ type: "GET_STATUS" });
-  await call({ type: "SET_ENABLED", enabled: !s.enabled });
-});
-
-$("syncNow").addEventListener("click", () => call({ type: "FLUSH_NOW" }));
-$("disconnect").addEventListener("click", () => call({ type: "UNPAIR" }));
-
-call({ type: "GET_STATUS" });
+render();

@@ -62,14 +62,19 @@ export function GoalsPage() {
     deleteDialogRef.current?.close();
   };
 
-  const formatGoalType = (type: Goal['type']) => {
-    switch (type) {
+  const formatGoalType = (goal: Goal) => {
+    if (goal.type === 'custom') {
+      return goal.customName || 'Custom Goal';
+    }
+    switch (goal.type) {
       case 'focus_minutes':
         return 'Focus Minutes';
       case 'max_screen_minutes':
         return 'Max Screen Minutes';
       case 'max_context_switches':
         return 'Max Context Switches';
+      default:
+        return 'Custom Goal';
     }
   };
 
@@ -143,7 +148,7 @@ export function GoalsPage() {
           {goals.map((g) => (
             <li key={g.id} className={styles.goalCard}>
               <div className={styles.goalInfo}>
-                <span className={styles.goalType}>{formatGoalType(g.type)}</span>
+                <span className={styles.goalType}>{formatGoalType(g)}</span>
                 <span className={styles.goalTarget}>
                   Target: {g.targetValue} ({g.period})
                 </span>
@@ -172,7 +177,7 @@ export function GoalsPage() {
           <h2 className={styles.dialogTitle}>Delete Goal</h2>
           <p className={styles.dialogBody}>
             Are you sure you want to delete this {deletingGoal?.period}{' '}
-            {deletingGoal ? formatGoalType(deletingGoal.type) : 'goal'}? This action cannot be
+            {deletingGoal ? formatGoalType(deletingGoal) : 'goal'}? This action cannot be
             undone.
           </p>
           <div className={styles.dialogActions}>

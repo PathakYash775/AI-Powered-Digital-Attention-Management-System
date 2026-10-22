@@ -17,15 +17,19 @@ export function GoalForm({ initialGoal, onSubmit, onCancel, isSubmitting = false
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
       type: initialGoal?.type ?? 'focus_minutes',
+      customName: initialGoal?.customName ?? '',
       period: initialGoal?.period ?? 'daily',
       targetValue: initialGoal?.targetValue ?? 60,
     },
   });
+
+  const selectedType = watch('type');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form} noValidate>
@@ -38,8 +42,25 @@ export function GoalForm({ initialGoal, onSubmit, onCancel, isSubmitting = false
           <option value="focus_minutes">Focus minutes</option>
           <option value="max_screen_minutes">Max screen minutes</option>
           <option value="max_context_switches">Max context switches</option>
+          <option value="custom">Custom Goal</option>
         </select>
       </Field>
+
+      {selectedType === 'custom' && (
+        <Field
+          id="goal-customName"
+          label="Goal Name"
+          error={errors.customName?.message}
+        >
+          <input
+            id="goal-customName"
+            type="text"
+            placeholder="e.g. Reading, LeetCode Practice, No Social Media"
+            aria-describedby={errors.customName ? 'goal-customName-error' : undefined}
+            {...register('customName')}
+          />
+        </Field>
+      )}
 
       <Field id="goal-period" label="Period" error={errors.period?.message}>
         <select

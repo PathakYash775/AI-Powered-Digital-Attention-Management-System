@@ -109,6 +109,105 @@ export function createApp(): Express {
 
   app.use('/api/v1', apiRouter);
 
+  // Direct Chrome extension activity sync endpoint
+  app.post('/api/activity', async (req: Request, res: Response): Promise<void> => {
+    try {
+      const defaultUser = await prisma.user.findFirst({
+        where: { email: 'yashpathak086@gmail.com' },
+      }) || await prisma.user.findFirst();
+
+      if (!defaultUser) {
+        res.status(200).json({ status: 'ok', message: 'No registered user found' }); return;
+      }
+
+      let device = await prisma.device.findFirst({
+        where: { userId: defaultUser.id, revokedAt: null },
+        orderBy: { lastSeenAt: 'desc' },
+      });
+
+      if (!device) {
+        device = await prisma.device.create({
+          data: {
+            userId: defaultUser.id,
+            name: 'Google Chrome',
+            platform: 'chrome',
+            tokenHash: 'dev_ext_' + Date.now(),
+            lastSeenAt: new Date(),
+          },
+        });
+      } else {
+        await prisma.device.update({
+          where: { id: device.id },
+          data: { lastSeenAt: new Date() },
+        });
+      }
+
+      const raw = req.body || {};
+      const domain = (raw.domain || (raw.url ? new URL(raw.url).hostname.replace(/^www\./, '') : 'unknown')).toLowerCase();
+      const durationSec = Math.max(1, Number(raw.duration_seconds || raw.durationSec || 1));
+      const endedAt = raw.ended_at || raw.endedAt ? new Date(raw.ended_at || raw.endedAt) : new Date();
+      const startedAt = raw.started_at || raw.startedAt ? new Date(raw.started_at || raw.startedAt) : new Date(endedAt.getTime() - durationSec * 1000);
+      const clientEventId = raw.clientEventId || ('evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
+
+      const { ingestService } = await import('./modules/ingest/ingest.service.js');
+      const result = await ingestService.ingestActivity(defaultUser.id, device.id, {
+        events: [
+          {
+            clientEventId,
+            domain,
+            startedAt: startedAt.toISOString(),
+            endedAt: endedAt.toISOString(),
+            idle: Boolean(raw.idle),
+          },
+        ],
+      });
+
+      // Record context switch if transitioning from another domain
+      try {
+        const previousActivity = await prisma.activityLog.findFirst({
+          where: {
+            userId: defaultUser.id,
+            deviceId: device.id,
+            domain: { not: domain },
+          },
+          orderBy: { endedAt: 'desc' },
+        });
+
+        if (previousActivity && Math.abs(startedAt.getTime() - previousActivity.endedAt.getTime()) < 300000) {
+          await prisma.contextSwitch.create({
+            data: {
+              userId: defaultUser.id,
+              deviceId: device.id,
+              clientEventId: 'sw_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+              fromApp: previousActivity.domain,
+              toApp: domain,
+              switchedAt: startedAt,
+            },
+          });
+        }
+      } catch {
+        // Non-blocking
+      }
+
+      res.status(200).json({ status: 'ok', result }); return;
+    } catch (err) {
+      console.error('Error in /api/activity:', err);
+      res.status(200).json({ status: 'received_with_fallback' }); return;
+    }
+  });
+
+  app.get('/api/activity', async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const records = await prisma.activityLog.findMany({
+        take: 50,
+        orderBy: { endedAt: 'desc' },
+      });
+      res.status(200).json(records); return;
+    } catch {
+      res.status(200).json([]); return;
+    }
+  });
+
   // Status root page
   app.get('/', (_req: Request, res: Response) => {
     const html = `<!DOCTYPE html>

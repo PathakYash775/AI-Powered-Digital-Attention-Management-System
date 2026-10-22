@@ -1,213 +1,233 @@
-.container {
+.sectionContainer {
   margin-top: 2rem;
-  padding: 1.5rem;
-  background: #ffffff;
+  padding: 1.75rem 2rem;
+  background: var(--color-surface, #ffffff);
   border: 1px solid var(--color-border, #e2e8f0);
   border-radius: 14px;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
 }
 
 .headerRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
   margin-bottom: 1.25rem;
 }
 
-.headerTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 0.25rem 0;
-}
-
-.headerSubtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0;
-}
-
-.generateBtn {
-  padding: 0.55rem 1rem;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
+.titleGroup {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: background 0.15s ease;
+  gap: 0.75rem;
+}
+
+.headerIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.generateBtn:hover:not(:disabled) {
-  background: #1d4ed8;
+.sectionTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0;
 }
 
-.generateBtn:disabled {
+.actionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.connectedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid #bbf7d0;
+}
+
+.greenDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.disconnectedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+}
+
+.grayDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.checkingBadge {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.connectButton {
+  padding: 0.45rem 1rem;
+  background: #0284c7;
+  border: 1px solid #0284c7;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.connectButton:hover:not(:disabled) {
+  background: #0369a1;
+  border-color: #0369a1;
+}
+
+.connectButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.refreshButton {
+  padding: 0.45rem 0.85rem;
+  background: var(--color-surface, #f8fafc);
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #334155);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.refreshButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Pairing Code Display Box */
-.codeCard {
-  background: #f8fafc;
-  border: 1.5px dashed #cbd5e1;
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
+.toastNotice {
+  padding: 0.65rem 1rem;
+  margin-bottom: 1.25rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.leadDescription {
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #475569);
+  margin: 0 0 1.5rem 0;
+}
+
+.infoCardsGrid {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-}
-
-.codeHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.codeLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
-}
-
-.countdownBadge {
-  font-size: 0.775rem;
-  font-weight: 600;
-  color: #d97706;
-  background: #fef3c7;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-}
-
-.codeBox {
+.infoCard {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
-}
-
-.codeValue {
-  font-family: var(--font-mono, monospace);
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  color: #1e293b;
-  background: #ffffff;
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  user-select: all;
-}
-
-.copyBtn {
-  padding: 0.5rem 0.85rem;
-  background: #e2e8f0;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: #1e293b;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.copyBtn:hover {
-  background: #cbd5e1;
-}
-
-.codeInstructions {
-  font-size: 0.825rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* Devices Table */
-.deviceTableWrapper {
-  overflow-x: auto;
-  border: 1px solid #f1f5f9;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg-secondary, #f8fafc);
+  border: 1px solid var(--color-border, #e2e8f0);
   border-radius: 10px;
 }
 
-.deviceTable {
-  width: 100%;
-  border-collapse: collapse;
+.cardIconBox {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.cardContent {
+  flex: 1;
+}
+
+.cardText {
   font-size: 0.875rem;
-  text-align: left;
+  line-height: 1.55;
+  color: var(--color-text-primary, #1e293b);
+  margin: 0;
 }
 
-.deviceTable th {
-  background: #f8fafc;
-  padding: 0.75rem 1rem;
-  font-weight: 600;
-  color: #475569;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.deviceTable td {
-  padding: 0.875rem 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
-}
-
-.deviceTable tr:last-child td {
-  border-bottom: none;
-}
-
-.deviceName {
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.platformPill {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #2563eb;
-  background: #eff6ff;
-  padding: 0.15rem 0.5rem;
+.cardText code {
+  background: rgba(148, 163, 184, 0.2);
+  padding: 0.15rem 0.35rem;
   border-radius: 4px;
+  font-size: 0.825rem;
 }
 
-.statusActive {
-  color: #16a34a;
+.footerRow {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.5rem;
+}
+
+.viewActivityLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  font-size: 0.8rem;
+  color: #0284c7;
+  text-decoration: none;
+  transition: color 0.15s ease;
 }
 
-.statusRevoked {
-  color: #94a3b8;
-  font-weight: 500;
-  font-size: 0.8rem;
-  text-decoration: line-through;
+.viewActivityLink:hover {
+  color: #0369a1;
+  text-decoration: underline;
 }
 
-.revokeBtn {
-  padding: 0.35rem 0.75rem;
-  background: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  font-size: 0.775rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.revokeBtn:hover {
-  background: #fecaca;
-}
-
-.emptyDevices {
-  text-align: center;
-  padding: 1.75rem;
-  color: #94a3b8;
-  font-size: 0.875rem;
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
 }

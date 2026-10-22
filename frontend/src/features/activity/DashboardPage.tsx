@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useActivityReport } from './hooks';
-import { formatDateTime, formatDuration, formatNumber, getTodayDateString } from '../../lib/format';
+import { formatDateTime, formatDuration, formatNumber, getTodayDateString, formatAppName } from '../../lib/format';
 import { CategoryDonutChart } from '../../components/charts/CategoryDonutChart';
 import { HourlyTimelineChart } from '../../components/charts/HourlyTimelineChart';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -270,7 +270,10 @@ export function DashboardPage() {
                     <li key={site.name} className={styles.siteItem}>
                       <div className={styles.siteHeader}>
                         <div className={styles.siteTitleGroup}>
-                          <span className={styles.siteName}>{site.name}</span>
+                          <span className={styles.siteName}>{formatAppName(site.name)}</span>
+                          {formatAppName(site.name) !== site.name && (
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({site.name})</span>
+                          )}
                           <span className={`${styles.catBadge} ${styles[category] || styles.other}`}>
                             {category}
                           </span>

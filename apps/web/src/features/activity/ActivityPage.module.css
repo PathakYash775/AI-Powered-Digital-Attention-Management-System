@@ -489,8 +489,47 @@
 }
 
 .domainCell {
+  color: #0f172a;
+}
+
+.appCellContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.appNameTitle {
+  font-size: 0.95rem;
   font-weight: 600;
   color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.appSubDetails {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  flex-wrap: wrap;
+}
+
+.appDomainBadge {
+  color: #64748b;
+  font-family: var(--font-mono, monospace);
+  font-weight: 500;
+}
+
+.appPlatformTag {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.appPlatformTag:not(:first-child)::before {
+  content: '•';
+  margin-right: 0.45rem;
+  color: #cbd5e1;
 }
 
 .categoryTag {

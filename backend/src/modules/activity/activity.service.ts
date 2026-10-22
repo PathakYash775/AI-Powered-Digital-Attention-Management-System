@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../lib/errors.js';
 import { decodeCursor, encodeCursor } from '../../lib/pagination.js';
+import { recomputeUsageForDates } from '../usage/rollup.js';
 import type { ActivityListQuery } from './activity.schemas.js';
 
 interface ResolvedDateRange {
@@ -8,15 +9,22 @@ interface ResolvedDateRange {
   toDate: Date;
 }
 
+function parseDateBoundary(dateStr: string, isEnd = false): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return new Date(`${dateStr}T${isEnd ? '23:59:59.999Z' : '00:00:00.000Z'}`);
+  }
+  return new Date(dateStr);
+}
+
 function resolveDateRange(from?: string, to?: string): ResolvedDateRange {
-  const toDate = to ? new Date(to) : new Date();
-  const fromDate = from ? new Date(from) : new Date(toDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const toDate = to ? parseDateBoundary(to, true) : new Date();
+  const fromDate = from ? parseDateBoundary(from, false) : new Date(toDate.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   if (fromDate.getTime() > toDate.getTime()) {
     throw new AppError(400, 'VALIDATION_ERROR', 'from must be before or equal to to');
   }
 
-  const maxRangeMs = 90 * 24 * 60 * 60 * 1000;
+  const maxRangeMs = 91 * 24 * 60 * 60 * 1000;
   if (toDate.getTime() - fromDate.getTime() > maxRangeMs) {
     throw new AppError(400, 'VALIDATION_ERROR', 'Date range exceeds maximum of 90 days');
   }
@@ -24,6 +32,114 @@ function resolveDateRange(from?: string, to?: string): ResolvedDateRange {
   return { fromDate, toDate };
 }
 
+const DOMAIN_APP_MAP: Record<string, string> = {
+  localhost: 'Digital Attention Management',
+  '127.0.0.1': 'Digital Attention API Server',
+  'github.com': 'GitHub',
+  github: 'GitHub',
+  'claude.ai': 'Claude AI',
+  claude: 'Claude AI',
+  'chatgpt.com': 'ChatGPT',
+  'chat.openai.com': 'ChatGPT',
+  'openai.com': 'ChatGPT',
+  chatgpt: 'ChatGPT',
+  'slack.com': 'Slack',
+  slack: 'Slack',
+  'youtube.com': 'YouTube',
+  youtube: 'YouTube',
+  'linkedin.com': 'LinkedIn',
+  linkedin: 'LinkedIn',
+  'notion.so': 'Notion',
+  notion: 'Notion',
+  'takeuforward.org': 'TakeUForward',
+  takeuforward: 'TakeUForward',
+  'stackoverflow.com': 'Stack Overflow',
+  stackoverflow: 'Stack Overflow',
+  'discord.com': 'Discord',
+  discord: 'Discord',
+  'figma.com': 'Figma',
+  figma: 'Figma',
+  'linear.app': 'Linear',
+  linear: 'Linear',
+  'twitter.com': 'X (Twitter)',
+  'x.com': 'X (Twitter)',
+  twitter: 'X (Twitter)',
+  'reddit.com': 'Reddit',
+  reddit: 'Reddit',
+  'spotify.com': 'Spotify',
+  spotify: 'Spotify',
+  'netflix.com': 'Netflix',
+  netflix: 'Netflix',
+  'google.com': 'Google Search',
+  'mail.google.com': 'Gmail',
+  gmail: 'Gmail',
+  'meet.google.com': 'Google Meet',
+  'calendar.google.com': 'Google Calendar',
+  'google calendar': 'Google Calendar',
+  'drive.google.com': 'Google Drive',
+  'docs.google.com': 'Google Docs',
+  'teams.microsoft.com': 'Microsoft Teams',
+  'microsoft teams': 'Microsoft Teams',
+  'zoom.us': 'Zoom',
+  zoom: 'Zoom',
+  'gitlab.com': 'GitLab',
+  gitlab: 'GitLab',
+  'bitbucket.org': 'Bitbucket',
+  bitbucket: 'Bitbucket',
+  'leetcode.com': 'LeetCode',
+  leetcode: 'LeetCode',
+  'codechef.com': 'CodeChef',
+  codechef: 'CodeChef',
+  'codeforces.com': 'Codeforces',
+  codeforces: 'Codeforces',
+  'medium.com': 'Medium',
+  medium: 'Medium',
+  'dev.to': 'DEV Community',
+  'amazon.com': 'Amazon',
+  'amazon.in': 'Amazon',
+  amazon: 'Amazon',
+  'whatsapp.com': 'WhatsApp',
+  'web.whatsapp.com': 'WhatsApp Web',
+  whatsapp: 'WhatsApp',
+  'telegram.org': 'Telegram',
+  'web.telegram.org': 'Telegram Web',
+  telegram: 'Telegram',
+  'gemini.google.com': 'Google Gemini',
+  vscode: 'Visual Studio Code',
+  'vs code': 'Visual Studio Code',
+  code: 'Visual Studio Code',
+  'google chrome': 'Google Chrome',
+  chrome: 'Google Chrome',
+};
+
+function resolveAppName(domain: string): string {
+  if (!domain) return 'Unknown Application';
+  let clean = domain.trim();
+  if (!clean) return 'Unknown Application';
+
+  const parenMatch = clean.match(/^([^(]+)\s*\((.+)\)$/);
+  if (parenMatch) {
+    clean = parenMatch[1].trim();
+  }
+
+  const d = clean.toLowerCase();
+  if (DOMAIN_APP_MAP[d]) return DOMAIN_APP_MAP[d];
+  for (const [key, name] of Object.entries(DOMAIN_APP_MAP)) {
+    if (d === key || d.endsWith('.' + key)) return name;
+  }
+  if (d.includes('localhost') || d.includes('127.0.0.1')) {
+    return 'Digital Attention Management';
+  }
+  const parts = d.split('.');
+  const mainPart = parts.length > 1 ? parts[parts.length - 2] : parts[0];
+  if (mainPart) {
+    return mainPart
+      .split(/[-_]/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+  return clean;
+}
 
 export const activityService = {
   async getSummary(userId: string, date: string) {
@@ -36,7 +152,22 @@ export const activityService = {
       },
     });
 
-    // Query real daily usage stat from PostgreSQL (no fake auto-seeding)
+    if (!stat) {
+      // Recompute on-demand from raw activity logs in case rollup hasn't executed
+      try {
+        await recomputeUsageForDates(userId, [date]);
+        stat = await prisma.dailyUsageStat.findUnique({
+          where: {
+            userId_date: {
+              userId,
+              date,
+            },
+          },
+        });
+      } catch {
+        // Continue if rollup fails
+      }
+    }
 
     const hourlyRecords = await prisma.hourlyUsagePattern.findMany({
       where: { userId, date },
@@ -187,13 +318,34 @@ export const activityService = {
         endedAt: true,
         durationSec: true,
         idle: true,
+        device: {
+          select: {
+            name: true,
+            platform: true,
+          },
+        },
       },
       orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
     });
 
     const hasMore = rows.length > limit;
-    const items = hasMore ? rows.slice(0, limit) : rows;
+    const rawItems = hasMore ? rows.slice(0, limit) : rows;
+    const items = rawItems.map((r) => {
+      const appName = resolveAppName(r.domain);
+      return {
+        id: r.id,
+        domain: r.domain,
+        appName,
+        siteName: appName,
+        device: r.device,
+        category: r.category,
+        startedAt: r.startedAt,
+        endedAt: r.endedAt,
+        durationSec: r.durationSec,
+        idle: r.idle,
+      };
+    });
 
     let nextCursor: string | null = null;
     if (hasMore) {
@@ -238,13 +390,32 @@ export const activityService = {
         fromApp: true,
         toApp: true,
         switchedAt: true,
+        device: {
+          select: {
+            name: true,
+            platform: true,
+          },
+        },
       },
       orderBy: [{ switchedAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
     });
 
     const hasMore = rows.length > limit;
-    const items = hasMore ? rows.slice(0, limit) : rows;
+    const rawItems = hasMore ? rows.slice(0, limit) : rows;
+    const items = rawItems.map((r) => {
+      const fromAppName = resolveAppName(r.fromApp);
+      const toAppName = resolveAppName(r.toApp);
+      return {
+        id: r.id,
+        fromApp: r.fromApp,
+        toApp: r.toApp,
+        fromAppName,
+        toAppName,
+        device: r.device,
+        switchedAt: r.switchedAt,
+      };
+    });
 
     let nextCursor: string | null = null;
     if (hasMore) {
@@ -288,13 +459,29 @@ export const activityService = {
         id: true,
         sourceApp: true,
         receivedAt: true,
+        device: {
+          select: {
+            name: true,
+            platform: true,
+          },
+        },
       },
       orderBy: [{ receivedAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
     });
 
     const hasMore = rows.length > limit;
-    const items = hasMore ? rows.slice(0, limit) : rows;
+    const rawItems = hasMore ? rows.slice(0, limit) : rows;
+    const items = rawItems.map((r) => {
+      const sourceAppName = resolveAppName(r.sourceApp);
+      return {
+        id: r.id,
+        sourceApp: r.sourceApp,
+        sourceAppName,
+        device: r.device,
+        receivedAt: r.receivedAt,
+      };
+    });
 
     let nextCursor: string | null = null;
     if (hasMore) {

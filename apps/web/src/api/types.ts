@@ -40,7 +40,7 @@ export interface Profile {
   workEnd: string;
 }
 
-export type GoalType = 'focus_minutes' | 'max_screen_minutes' | 'max_context_switches';
+export type GoalType = 'focus_minutes' | 'max_screen_minutes' | 'max_context_switches' | 'custom';
 export type GoalPeriod = 'daily' | 'weekly';
 
 export interface Goal {
@@ -48,18 +48,21 @@ export interface Goal {
   type: GoalType;
   period: GoalPeriod;
   targetValue: number;
+  customName?: string | null;
 }
 
 export interface CreateGoalPayload {
   type: GoalType;
   period: GoalPeriod;
   targetValue: number;
+  customName?: string | null;
 }
 
 export interface UpdateGoalPayload {
   type?: GoalType;
   period?: GoalPeriod;
   targetValue?: number;
+  customName?: string | null;
 }
 
 export interface TopSite {
@@ -119,19 +122,36 @@ export interface ActivitySession {
   endedAt: string;
   durationSec: number;
   idle: boolean;
+  appName?: string;
+  siteName?: string;
+  device?: {
+    name: string;
+    platform: string;
+  };
 }
 
 export interface TaskSwitch {
   id: string;
   fromApp: string;
   toApp: string;
+  fromAppName?: string;
+  toAppName?: string;
   switchedAt: string;
+  device?: {
+    name: string;
+    platform: string;
+  };
 }
 
 export interface ActivityNotification {
   id: string;
   sourceApp: string;
+  sourceAppName?: string;
   receivedAt: string;
+  device?: {
+    name: string;
+    platform: string;
+  };
 }
 
 export interface PaginatedResult<T> {
@@ -158,4 +178,19 @@ export interface PairingCodeResponse {
   code: string;
   expiresAt: string;
 }
+
+export interface ExtensionStatusResponse {
+  connected: boolean;
+  activeDevice: DeviceItem | null;
+  todayStats: {
+    activityCount: number;
+    switchCount: number;
+    lastDomain: string | null;
+    lastEventAt: string | null;
+  };
+  extensionName: string;
+  version: string;
+  syncEndpoint: string;
+}
+
 

@@ -6,10 +6,17 @@ export const activitySummaryQuerySchema = z
   })
   .strict();
 
+const dateOrDatetimeString = z
+  .string()
+  .refine(
+    (val) => /^\d{4}-\d{2}-\d{2}$/.test(val) || !isNaN(Date.parse(val)),
+    { message: 'Must be in YYYY-MM-DD or ISO 8601 datetime format' },
+  );
+
 export const activityListQuerySchema = z
   .object({
-    from: z.string().datetime().optional(),
-    to: z.string().datetime().optional(),
+    from: dateOrDatetimeString.optional(),
+    to: dateOrDatetimeString.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(50),
     cursor: z.string().optional(),
   })
@@ -17,10 +24,10 @@ export const activityListQuerySchema = z
   .refine(
     (q) => {
       if (q.from && q.to) {
-        const fromTime = new Date(q.from).getTime();
-        const toTime = new Date(q.to).getTime();
+        const fromTime = new Date(q.from.includes('T') ? q.from : `${q.from}T00:00:00.000Z`).getTime();
+        const toTime = new Date(q.to.includes('T') ? q.to : `${q.to}T23:59:59.999Z`).getTime();
         if (fromTime > toTime) return false;
-        const maxRangeMs = 90 * 24 * 60 * 60 * 1000;
+        const maxRangeMs = 91 * 24 * 60 * 60 * 1000;
         if (toTime - fromTime > maxRangeMs) return false;
       }
       return true;

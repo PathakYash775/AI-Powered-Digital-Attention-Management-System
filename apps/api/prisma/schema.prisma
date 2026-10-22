@@ -16,6 +16,7 @@ enum GoalType {
   focus_minutes
   max_screen_minutes
   max_context_switches
+  custom
 }
 
 enum GoalPeriod {
@@ -90,6 +91,7 @@ model Goal {
   type        GoalType
   period      GoalPeriod
   targetValue Int
+  customName  String?
   createdAt   DateTime   @default(now())
 
   @@index([userId])

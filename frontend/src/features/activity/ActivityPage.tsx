@@ -7,7 +7,7 @@ import {
   useTaskSwitches,
 } from './hooks';
 import { devicesApi } from '../../api/devices';
-import { formatDateTime, formatDuration, getTodayDateString } from '../../lib/format';
+import { formatDateTime, formatDuration, getTodayDateString, formatAppName, parseAppDetail } from '../../lib/format';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import styles from './ActivityPage.module.css';
@@ -87,7 +87,9 @@ export function ActivityPage() {
 
   // Active applications
   const uniqueAppsCount = summary?.topSites?.length ?? allSessions.length;
-  const topApp = summary?.topSites?.[0]?.name ?? (allSessions[0]?.domain || 'N/A');
+  const topApp = summary?.topSites?.[0]?.name
+    ? formatAppName(summary.topSites[0].name)
+    : (allSessions[0] ? formatAppName(allSessions[0].domain || allSessions[0].appName) : 'N/A');
 
   // Check if hourly patterns have actual recorded telemetry
   const hasHourlyData = hourlyPatterns.some((h) => h.activeSec > 0 || h.idleSec > 0);
@@ -387,13 +389,32 @@ export function ActivityPage() {
                       <th>Category</th>
                       <th>Started At</th>
                       <th>Duration</th>
-                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allSessions.map((s) => (
-                      <tr key={s.id}>
-                        <td className={styles.domainCell}>{s.domain}</td>
+                    {allSessions.map((s) => {
+                      const appName =
+                        s.appName && s.appName !== 'Google Chrome'
+                          ? s.appName
+                          : formatAppName(s.domain);
+
+                      const isChrome =
+                        s.device?.platform === 'chrome' ||
+                        s.device?.name?.toLowerCase().includes('chrome');
+
+                      return (
+                        <tr key={s.id}>
+                          <td className={styles.domainCell}>
+                            <div className={styles.appCellContainer}>
+                              <span className={styles.appNameTitle}>{appName}</span>
+                              <div className={styles.appSubDetails}>
+                                <span className={styles.appDomainBadge}>{s.domain}</span>
+                                <span className={styles.appPlatformTag}>
+                                  {isChrome ? 'Google Chrome' : (s.device?.name || 'Desktop App')}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
                         <td>
                           <span className={`${styles.categoryTag} ${styles[s.category] || styles.other}`}>
                             {s.category}
@@ -401,15 +422,9 @@ export function ActivityPage() {
                         </td>
                         <td>{formatDateTime(s.startedAt)}</td>
                         <td>{formatDuration(s.durationSec)}</td>
-                        <td>
-                          {s.idle ? (
-                            <span className={styles.idleStatus}>● Idle</span>
-                          ) : (
-                            <span className={styles.activeStatus}>● Active</span>
-                          )}
-                        </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
                 {sessionsQuery.hasNextPage && (
@@ -451,13 +466,61 @@ export function ActivityPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {allSwitches.map((sw) => (
-                      <tr key={sw.id}>
-                        <td className={styles.domainCell}>{sw.fromApp}</td>
-                        <td className={styles.domainCell}>{sw.toApp}</td>
-                        <td>{formatDateTime(sw.switchedAt)}</td>
-                      </tr>
-                    ))}
+                    {allSwitches.map((sw) => {
+                      const fromParsed = parseAppDetail(sw.fromAppName || sw.fromApp);
+                      const toParsed = parseAppDetail(sw.toAppName || sw.toApp);
+
+                      const isFromChrome =
+                        sw.device?.platform === 'chrome' ||
+                        sw.device?.name?.toLowerCase().includes('chrome') ||
+                        sw.fromApp.includes('.') ||
+                        sw.fromApp.includes('localhost');
+
+                      const isToChrome =
+                        sw.device?.platform === 'chrome' ||
+                        sw.device?.name?.toLowerCase().includes('chrome') ||
+                        sw.toApp.includes('.') ||
+                        sw.toApp.includes('localhost');
+
+                      const fromPlatformTag = isFromChrome
+                        ? 'Google Chrome'
+                        : (sw.device?.name || 'Desktop App');
+                      const toPlatformTag = isToChrome
+                        ? 'Google Chrome'
+                        : (sw.device?.name || 'Desktop App');
+
+                      return (
+                        <tr key={sw.id}>
+                          <td className={styles.domainCell}>
+                            <div className={styles.appCellContainer}>
+                              <span className={styles.appNameTitle}>{fromParsed.appName}</span>
+                              <div className={styles.appSubDetails}>
+                                {fromParsed.detail && (
+                                  <span className={styles.appDomainBadge}>{fromParsed.detail}</span>
+                                )}
+                                {fromPlatformTag !== fromParsed.appName && (
+                                  <span className={styles.appPlatformTag}>{fromPlatformTag}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className={styles.domainCell}>
+                            <div className={styles.appCellContainer}>
+                              <span className={styles.appNameTitle}>{toParsed.appName}</span>
+                              <div className={styles.appSubDetails}>
+                                {toParsed.detail && (
+                                  <span className={styles.appDomainBadge}>{toParsed.detail}</span>
+                                )}
+                                {toPlatformTag !== toParsed.appName && (
+                                  <span className={styles.appPlatformTag}>{toPlatformTag}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td>{formatDateTime(sw.switchedAt)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {switchesQuery.hasNextPage && (
@@ -498,12 +561,38 @@ export function ActivityPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {allNotifs.map((n) => (
-                      <tr key={n.id}>
-                        <td className={styles.domainCell}>{n.sourceApp}</td>
-                        <td>{formatDateTime(n.receivedAt)}</td>
-                      </tr>
-                    ))}
+                    {allNotifs.map((n) => {
+                      const notifParsed = parseAppDetail(n.sourceAppName || n.sourceApp);
+
+                      const isNotifChrome =
+                        n.device?.platform === 'chrome' ||
+                        n.device?.name?.toLowerCase().includes('chrome') ||
+                        n.sourceApp.includes('.') ||
+                        n.sourceApp.includes('localhost');
+
+                      const notifPlatformTag = isNotifChrome
+                        ? 'Google Chrome'
+                        : (n.device?.name || 'Desktop App');
+
+                      return (
+                        <tr key={n.id}>
+                          <td className={styles.domainCell}>
+                            <div className={styles.appCellContainer}>
+                              <span className={styles.appNameTitle}>{notifParsed.appName}</span>
+                              <div className={styles.appSubDetails}>
+                                {notifParsed.detail && (
+                                  <span className={styles.appDomainBadge}>{notifParsed.detail}</span>
+                                )}
+                                {notifPlatformTag !== notifParsed.appName && (
+                                  <span className={styles.appPlatformTag}>{notifPlatformTag}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td>{formatDateTime(n.receivedAt)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {notificationsQuery.hasNextPage && (

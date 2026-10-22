@@ -16,6 +16,7 @@ enum GoalType {
   focus_minutes
   max_screen_minutes
   max_context_switches
+  custom
 }
 
 enum GoalPeriod {
