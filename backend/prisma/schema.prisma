@@ -26,6 +26,17 @@ enum GoalPeriod {
 
 enum DevicePlatform {
   chrome
+  windows
+}
+
+enum ActivitySource {
+  browser
+  desktop
+}
+
+enum CategoryKind {
+  domain
+  app
 }
 
 enum Category {
@@ -91,6 +102,7 @@ model Goal {
   type        GoalType
   period      GoalPeriod
   targetValue Int
+  customName  String?
   createdAt   DateTime   @default(now())
 
   @@index([userId])
@@ -128,19 +140,24 @@ model PairingCode {
 }
 
 model DomainCategory {
-  id       String   @id @default(uuid())
-  pattern  String   @unique
+  id       String       @id @default(uuid())
+  kind     CategoryKind @default(domain)
+  pattern  String
   category Category
+
+  @@unique([kind, pattern])
 }
 
 model ActivityLog {
-  id            String   @id @default(uuid())
+  id            String         @id @default(uuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   deviceId      String
-  device        Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  device        Device         @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   clientEventId String
-  domain        String
+  source        ActivitySource @default(browser)
+  domain        String?
+  appName       String?
   category      Category
   startedAt     DateTime
   endedAt       DateTime
@@ -204,6 +221,7 @@ model DailyUsageStat {
   switchCount       Int
   notificationCount Int
   topSites          Json
+  topApps           Json   @default("[]")
   byCategory        Json
 
   @@id([userId, date])

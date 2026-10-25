@@ -131,6 +131,7 @@ export async function recomputeUsageForDates(userId: string, targetDates: string
     let dailyActiveSec = 0;
     let dailyIdleSec = 0;
     const domainSeconds: Record<string, number> = {};
+    const appSeconds: Record<string, number> = {};
     const categorySeconds: Record<string, number> = {
       productive: 0,
       social: 0,
@@ -167,7 +168,11 @@ export async function recomputeUsageForDates(userId: string, targetDates: string
             } else {
               hourBucket.activeSec += chunkSec;
               dailyActiveSec += chunkSec;
-              domainSeconds[log.domain] = (domainSeconds[log.domain] ?? 0) + chunkSec;
+              if (log.source === 'desktop' && log.appName) {
+                appSeconds[log.appName] = (appSeconds[log.appName] ?? 0) + chunkSec;
+              } else if (log.domain) {
+                domainSeconds[log.domain] = (domainSeconds[log.domain] ?? 0) + chunkSec;
+              }
               categorySeconds[log.category] = (categorySeconds[log.category] ?? 0) + chunkSec;
             }
           }
@@ -202,6 +207,11 @@ export async function recomputeUsageForDates(userId: string, targetDates: string
       .sort((a, b) => b.durationSec - a.durationSec)
       .slice(0, 5);
 
+    const topApps = Object.entries(appSeconds)
+      .map(([name, durationSec]) => ({ name, durationSec }))
+      .sort((a, b) => b.durationSec - a.durationSec)
+      .slice(0, 5);
+
     const byCategory = Object.entries(categorySeconds).map(([category, durationSec]) => ({
       category,
       durationSec,
@@ -227,6 +237,7 @@ export async function recomputeUsageForDates(userId: string, targetDates: string
         switchCount,
         notificationCount,
         topSites,
+        topApps,
         byCategory,
       },
       update: {
@@ -236,6 +247,7 @@ export async function recomputeUsageForDates(userId: string, targetDates: string
         switchCount,
         notificationCount,
         topSites,
+        topApps,
         byCategory,
       },
     });

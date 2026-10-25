@@ -1,0 +1,6 @@
+# AttentionTracker desktop app configuration
+api_base_url = "http://127.0.0.1:8000/api/v1"
+dashboard_url = "http://localhost:5173"
+excluded_apps = ["chrome", "msedge", "brave"]
+poll_seconds = 2
+idle_seconds = 60

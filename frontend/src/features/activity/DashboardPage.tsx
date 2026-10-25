@@ -27,14 +27,19 @@ export function DashboardPage() {
 
   const { summary, hourlyPatterns = [], categoryBreakdown, focusSessions = [], goals = [] } = report;
 
+  const topApps = summary.topApps ?? [];
+
   const hasActivity =
     summary.totalScreenSec > 0 ||
     summary.switchCount > 0 ||
     summary.notificationCount > 0 ||
-    summary.topSites.length > 0;
+    summary.topSites.length > 0 ||
+    topApps.length > 0;
 
   const maxSiteDuration =
     summary.topSites.length > 0 ? Math.max(...summary.topSites.map((s) => s.durationSec)) : 1;
+  const maxAppDuration =
+    topApps.length > 0 ? Math.max(...topApps.map((a) => a.durationSec)) : 1;
 
   const activeBreakdown = categoryBreakdown ?? {
     productive: 0,
@@ -63,6 +68,35 @@ export function DashboardPage() {
     }
     if (domain.includes('reddit') || domain.includes('twitter') || domain.includes('instagram') || domain.includes('linkedin') || domain.includes('x.com')) {
       return 'social';
+    }
+    return 'other';
+  };
+
+  const getAppCategory = (appName: string): string => {
+    const lower = appName.toLowerCase();
+    if (
+      lower.includes('code') ||
+      lower.includes('cursor') ||
+      lower.includes('terminal') ||
+      lower.includes('notepad') ||
+      lower.includes('word') ||
+      lower.includes('excel') ||
+      lower.includes('powerpnt') ||
+      lower.includes('figma')
+    ) {
+      return 'productive';
+    }
+    if (
+      lower.includes('slack') ||
+      lower.includes('teams') ||
+      lower.includes('discord') ||
+      lower.includes('outlook') ||
+      lower.includes('whatsapp')
+    ) {
+      return 'communication';
+    }
+    if (lower.includes('spotify') || lower.includes('vlc') || lower.includes('steam')) {
+      return 'entertainment';
     }
     return 'other';
   };
@@ -98,7 +132,7 @@ export function DashboardPage() {
       {!hasActivity ? (
         <EmptyState
           message="No activity recorded for this date."
-          description="Keep your paired Chrome extension active or start a focus session to record real activity directly into PostgreSQL."
+          description="Keep your paired Chrome extension or Windows desktop app active to record real activity directly into PostgreSQL."
         />
       ) : (
         <>
@@ -257,46 +291,90 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <section className={styles.sitesSection} aria-label="Top websites used">
-            <h2 className={styles.sectionTitle}>🌐 Application & Website Usage Monitoring</h2>
-            {summary.topSites.length === 0 ? (
-              <p className={styles.emptySitesText}>No website usage tracked for this date.</p>
-            ) : (
-              <ul className={styles.sitesList}>
-                {summary.topSites.map((site) => {
-                  const percentage = Math.round((site.durationSec / maxSiteDuration) * 100);
-                  const category = site.category || getDomainCategory(site.name);
-                  return (
-                    <li key={site.name} className={styles.siteItem}>
-                      <div className={styles.siteHeader}>
-                        <div className={styles.siteTitleGroup}>
-                          <span className={styles.siteName}>{formatAppName(site.name)}</span>
-                          {formatAppName(site.name) !== site.name && (
-                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({site.name})</span>
-                          )}
-                          <span className={`${styles.catBadge} ${styles[category] || styles.other}`}>
-                            {category}
+          <section className={styles.twoColGrid} aria-label="Top applications and websites">
+            <div className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>🌐 Top Websites & Web Apps</h2>
+              {summary.topSites.length === 0 ? (
+                <p className={styles.emptySitesText}>No website usage tracked for this date.</p>
+              ) : (
+                <ul className={styles.sitesList}>
+                  {summary.topSites.map((site) => {
+                    const percentage = Math.round((site.durationSec / maxSiteDuration) * 100);
+                    const category = site.category || getDomainCategory(site.name);
+                    return (
+                      <li key={site.name} className={styles.siteItem}>
+                        <div className={styles.siteHeader}>
+                          <div className={styles.siteTitleGroup}>
+                            <span className={styles.siteName}>{formatAppName(site.name)}</span>
+                            {formatAppName(site.name) !== site.name && (
+                              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({site.name})</span>
+                            )}
+                            <span className={`${styles.catBadge} ${styles[category] || styles.other}`}>
+                              {category}
+                            </span>
+                          </div>
+                          <span className={styles.siteDuration}>
+                            {formatDuration(site.durationSec)}
                           </span>
                         </div>
-                        <span className={styles.siteDuration}>
-                          {formatDuration(site.durationSec)}
-                        </span>
-                      </div>
-                      <div
-                        className={styles.barTrack}
-                        role="progressbar"
-                        aria-valuenow={percentage}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label={`Time spent on ${site.name}`}
-                      >
-                        <div className={styles.barFill} style={{ width: `${percentage}%` }} />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+                        <div
+                          className={styles.barTrack}
+                          role="progressbar"
+                          aria-valuenow={percentage}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`Time spent on ${site.name}`}
+                        >
+                          <div className={styles.barFill} style={{ width: `${percentage}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className={styles.sectionCard}>
+              <h2 className={styles.sectionTitle}>💻 Top Desktop Applications</h2>
+              {topApps.length === 0 ? (
+                <p className={styles.emptySitesText}>No desktop application activity tracked for this date.</p>
+              ) : (
+                <ul className={styles.sitesList}>
+                  {topApps.map((app) => {
+                    const percentage = Math.round((app.durationSec / maxAppDuration) * 100);
+                    const category = app.category || getAppCategory(app.name);
+                    return (
+                      <li key={app.name} className={styles.siteItem}>
+                        <div className={styles.siteHeader}>
+                          <div className={styles.siteTitleGroup}>
+                            <span className={styles.siteName}>{formatAppName(app.name)}</span>
+                            {formatAppName(app.name).toLowerCase() !== app.name.toLowerCase() && (
+                              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({app.name})</span>
+                            )}
+                            <span className={`${styles.catBadge} ${styles[category] || styles.other}`}>
+                              {category}
+                            </span>
+                          </div>
+                          <span className={styles.siteDuration}>
+                            {formatDuration(app.durationSec)}
+                          </span>
+                        </div>
+                        <div
+                          className={styles.barTrack}
+                          role="progressbar"
+                          aria-valuenow={percentage}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`Time spent on ${app.name}`}
+                        >
+                          <div className={styles.barFill} style={{ width: `${percentage}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </section>
         </>
       )}

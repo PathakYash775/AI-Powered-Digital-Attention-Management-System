@@ -2,27 +2,46 @@ import crypto from 'node:crypto';
 import request from 'supertest';
 import { app } from '../app.js';
 import { prisma } from '../lib/prisma.js';
-import type { Category } from '@prisma/client';
+import type { Category, CategoryKind } from '@prisma/client';
 import { generateAccessToken, hashPassword, hashToken } from '../lib/security.js';
+import { clearCategoriesCache } from '../modules/ingest/ingest.service.js';
 
 let isDbConnected: boolean | null = null;
 
-const initialCategories: Array<{ id: string; pattern: string; category: Category }> = [
-  { id: '1', pattern: 'youtube.com', category: 'entertainment' },
-  { id: '2', pattern: 'netflix.com', category: 'entertainment' },
-  { id: '3', pattern: 'instagram.com', category: 'social' },
-  { id: '4', pattern: 'facebook.com', category: 'social' },
-  { id: '5', pattern: 'x.com', category: 'social' },
-  { id: '6', pattern: 'twitter.com', category: 'social' },
-  { id: '7', pattern: 'reddit.com', category: 'social' },
-  { id: '8', pattern: 'web.whatsapp.com', category: 'communication' },
-  { id: '9', pattern: 'slack.com', category: 'communication' },
-  { id: '10', pattern: 'discord.com', category: 'communication' },
-  { id: '11', pattern: 'teams.microsoft.com', category: 'communication' },
-  { id: '12', pattern: 'mail.google.com', category: 'communication' },
-  { id: '13', pattern: 'github.com', category: 'productive' },
-  { id: '14', pattern: 'stackoverflow.com', category: 'productive' },
-  { id: '15', pattern: 'developer.mozilla.org', category: 'productive' },
+const initialCategories: Array<{ id: string; kind: CategoryKind; pattern: string; category: Category }> = [
+  { id: '1', kind: 'domain', pattern: 'youtube.com', category: 'entertainment' },
+  { id: '2', kind: 'domain', pattern: 'netflix.com', category: 'entertainment' },
+  { id: '3', kind: 'domain', pattern: 'instagram.com', category: 'social' },
+  { id: '4', kind: 'domain', pattern: 'facebook.com', category: 'social' },
+  { id: '5', kind: 'domain', pattern: 'x.com', category: 'social' },
+  { id: '6', kind: 'domain', pattern: 'twitter.com', category: 'social' },
+  { id: '7', kind: 'domain', pattern: 'reddit.com', category: 'social' },
+  { id: '8', kind: 'domain', pattern: 'web.whatsapp.com', category: 'communication' },
+  { id: '9', kind: 'domain', pattern: 'slack.com', category: 'communication' },
+  { id: '10', kind: 'domain', pattern: 'discord.com', category: 'communication' },
+  { id: '11', kind: 'domain', pattern: 'teams.microsoft.com', category: 'communication' },
+  { id: '12', kind: 'domain', pattern: 'mail.google.com', category: 'communication' },
+  { id: '13', kind: 'domain', pattern: 'github.com', category: 'productive' },
+  { id: '14', kind: 'domain', pattern: 'stackoverflow.com', category: 'productive' },
+  { id: '15', kind: 'domain', pattern: 'developer.mozilla.org', category: 'productive' },
+  // app patterns
+  { id: '101', kind: 'app', pattern: 'code', category: 'productive' },
+  { id: '102', kind: 'app', pattern: 'cursor', category: 'productive' },
+  { id: '103', kind: 'app', pattern: 'windowsterminal', category: 'productive' },
+  { id: '104', kind: 'app', pattern: 'notepad', category: 'productive' },
+  { id: '105', kind: 'app', pattern: 'winword', category: 'productive' },
+  { id: '106', kind: 'app', pattern: 'excel', category: 'productive' },
+  { id: '107', kind: 'app', pattern: 'powerpnt', category: 'productive' },
+  { id: '108', kind: 'app', pattern: 'figma', category: 'productive' },
+  { id: '109', kind: 'app', pattern: 'whatsapp', category: 'communication' },
+  { id: '110', kind: 'app', pattern: 'slack', category: 'communication' },
+  { id: '111', kind: 'app', pattern: 'teams', category: 'communication' },
+  { id: '112', kind: 'app', pattern: 'ms-teams', category: 'communication' },
+  { id: '113', kind: 'app', pattern: 'discord', category: 'communication' },
+  { id: '114', kind: 'app', pattern: 'outlook', category: 'communication' },
+  { id: '115', kind: 'app', pattern: 'spotify', category: 'entertainment' },
+  { id: '116', kind: 'app', pattern: 'vlc', category: 'entertainment' },
+  { id: '117', kind: 'app', pattern: 'steam', category: 'entertainment' },
 ];
 
 export async function checkDbConnection(): Promise<boolean> {
@@ -110,180 +129,198 @@ function matchesWhere(item: ModelRecord, where: Record<string, unknown>): boolea
         const comp = valObj.lte instanceof Date ? (valObj.lte as Date).getTime() : new Date(String(valObj.lte)).getTime();
         if (!(itemVal <= comp)) return false;
       }
+      if ('not' in valObj) {
+        if (item[key] === valObj.not) return false;
+      }
       continue;
     }
-    if (item[key] !== val) return false;
+    if (item[key] !== val) {
+      return false;
+    }
   }
   return true;
 }
 
-function selectFields(
-  item: ModelRecord,
-  select?: Record<string, boolean>,
-): ModelRecord {
-  if (!select) return { ...item };
+function projectRecord(record: ModelRecord, select?: Record<string, unknown>): ModelRecord {
+  if (!select) return { ...record };
   const res: ModelRecord = {};
-  for (const [k, v] of Object.entries(select)) {
-    if (v) res[k] = item[k];
+  for (const [key, val] of Object.entries(select)) {
+    if (val === true) {
+      res[key] = record[key];
+    } else if (typeof val === 'object' && val !== null) {
+      if (key === 'user' && record['userId']) {
+        const userRec = memStore.users.find((u) => u['id'] === record['userId']);
+        res[key] = userRec ? projectRecord(userRec, (val as Record<string, unknown>).select as Record<string, unknown>) : null;
+      } else if (key === 'device' && record['deviceId']) {
+        const devRec = memStore.devices.find((d) => d['id'] === record['deviceId']);
+        res[key] = devRec ? projectRecord(devRec, (val as Record<string, unknown>).select as Record<string, unknown>) : null;
+      }
+    }
   }
   return res;
 }
 
-function createModelHandler(collectionName: keyof Store, pkFields: string[] = ['id']) {
+function createModelHandler(collectionName: keyof Store, _idKeys: string[] = ['id']) {
   return {
-    async findUnique(args: { where: Record<string, unknown>; select?: Record<string, boolean> }) {
-      const items = memStore[collectionName];
-      let targetWhere = args.where;
-      for (const [, v] of Object.entries(args.where)) {
-        if (v && typeof v === 'object' && !(v instanceof Date)) {
-          targetWhere = v as Record<string, unknown>;
+    async findUnique(args: { where: Record<string, unknown>; select?: Record<string, unknown> }) {
+      const found = memStore[collectionName].find((it) => {
+        const where = args.where;
+        for (const [key, val] of Object.entries(where)) {
+          if (key.includes('_')) {
+            const composite = val as Record<string, unknown>;
+            for (const [cKey, cVal] of Object.entries(composite)) {
+              if (it[cKey] !== cVal) return false;
+            }
+            continue;
+          }
+          if (it[key] !== val) return false;
         }
-      }
-      const found = items.find((it) => matchesWhere(it, targetWhere));
-      return found ? selectFields(found, args.select) : null;
+        return true;
+      });
+      return found ? projectRecord(found, args.select) : null;
     },
-    async findFirst(args: { where?: Record<string, unknown>; select?: Record<string, boolean> }) {
-      const items = memStore[collectionName];
-      const matched = args.where ? items.filter((it) => matchesWhere(it, args.where as Record<string, unknown>)) : items;
-      const found = matched[0];
-      return found ? selectFields(found, args.select) : null;
+    async findFirst(args?: {
+      where?: Record<string, unknown>;
+      orderBy?: Record<string, 'asc' | 'desc'> | Array<Record<string, 'asc' | 'desc'>>;
+      select?: Record<string, unknown>;
+    }) {
+      let list = [...memStore[collectionName]];
+      if (args?.where) {
+        list = list.filter((it) => matchesWhere(it, args.where!));
+      }
+      if (args?.orderBy) {
+        const orders = Array.isArray(args.orderBy) ? args.orderBy : [args.orderBy];
+        list.sort((a, b) => {
+          for (const order of orders) {
+            const [field, dir] = Object.entries(order)[0]!;
+            const valA = a[field] instanceof Date ? (a[field] as Date).getTime() : a[field];
+            const valB = b[field] instanceof Date ? (b[field] as Date).getTime() : b[field];
+            if (valA !== valB) {
+              const comp = (valA ?? 0) > (valB ?? 0) ? 1 : -1;
+              return dir === 'desc' ? -comp : comp;
+            }
+          }
+          return 0;
+        });
+      }
+      return list[0] ? projectRecord(list[0], args?.select) : null;
     },
     async findMany(args?: {
       where?: Record<string, unknown>;
-      select?: Record<string, boolean>;
-      orderBy?: Array<Record<string, 'asc' | 'desc'>>;
+      orderBy?: Record<string, 'asc' | 'desc'> | Array<Record<string, 'asc' | 'desc'>>;
+      select?: Record<string, unknown>;
       take?: number;
     }) {
-      const items = memStore[collectionName];
-      let matched = args?.where ? items.filter((it) => matchesWhere(it, args.where as Record<string, unknown>)) : [...items];
-      if (args?.orderBy && Array.isArray(args.orderBy)) {
-        matched.sort((a, b) => {
-          for (const order of args.orderBy as Array<Record<string, 'asc' | 'desc'>>) {
-            const entry = Object.entries(order)[0];
-            if (!entry) continue;
-            const [k, dir] = entry;
-            const valA = a[k] instanceof Date ? (a[k] as Date).getTime() : (a[k] as number | string);
-            const valB = b[k] instanceof Date ? (b[k] as Date).getTime() : (b[k] as number | string);
-            if (valA < valB) return dir === 'asc' ? -1 : 1;
-            if (valA > valB) return dir === 'asc' ? 1 : -1;
+      let list = [...memStore[collectionName]];
+      if (args?.where) {
+        list = list.filter((it) => matchesWhere(it, args.where!));
+      }
+      if (args?.orderBy) {
+        const orders = Array.isArray(args.orderBy) ? args.orderBy : [args.orderBy];
+        list.sort((a, b) => {
+          for (const order of orders) {
+            const [field, dir] = Object.entries(order)[0]!;
+            const valA = a[field] instanceof Date ? (a[field] as Date).getTime() : a[field];
+            const valB = b[field] instanceof Date ? (b[field] as Date).getTime() : b[field];
+            if (valA !== valB) {
+              const comp = (valA ?? 0) > (valB ?? 0) ? 1 : -1;
+              return dir === 'desc' ? -comp : comp;
+            }
           }
           return 0;
         });
       }
       if (args?.take !== undefined) {
-        matched = matched.slice(0, args.take);
+        list = list.slice(0, args.take);
       }
-      return matched.map((it) => selectFields(it, args?.select));
+      return list.map((it) => projectRecord(it, args?.select));
     },
-    async create(args: { data: Record<string, unknown>; select?: Record<string, boolean> }) {
-      const items = memStore[collectionName];
-      const newItem: ModelRecord = {
-        id: args.data.id ?? crypto.randomUUID(),
-        createdAt: new Date(),
-        ...(collectionName === 'devices' && { revokedAt: null, lastSeenAt: null }),
-        ...(collectionName === 'refreshTokens' && { revokedAt: null }),
-        ...(collectionName === 'pairingCodes' && { usedAt: null }),
-        ...(collectionName === 'focusSessions' && { endedAt: null }),
-        ...args.data,
-      };
-      if (collectionName === 'users' && args.data.profile) {
-        const profData = args.data.profile as { create?: { displayName: string } };
-        if (profData.create) {
-          memStore.profiles.push({
-            userId: newItem.id,
-            displayName: profData.create.displayName,
-            timezone: 'UTC',
-            occupationType: 'student',
-            workStart: '09:00',
-            workEnd: '17:00',
-          });
-        }
+    async create(args: { data: Record<string, unknown>; select?: Record<string, unknown> }) {
+      const record = { ...args.data };
+      if (!record['id']) {
+        record['id'] = crypto.randomUUID();
       }
-      items.push(newItem);
-      return selectFields(newItem, args.select);
+      if (!record['createdAt']) {
+        record['createdAt'] = new Date();
+      }
+      memStore[collectionName].push(record);
+      return projectRecord(record, args.select);
     },
     async createMany(args: { data: Array<Record<string, unknown>>; skipDuplicates?: boolean }) {
-      const items = memStore[collectionName];
-      let inserted = 0;
-      for (const d of args.data) {
-        const isDup = pkFields.some(() => {
-          if (
-            collectionName === 'activityLogs' ||
-            collectionName === 'contextSwitches' ||
-            collectionName === 'notificationEvents'
-          ) {
-            return items.some((it) => it.deviceId === d.deviceId && it.clientEventId === d.clientEventId);
-          }
-          return false;
-        });
-        if (isDup && args.skipDuplicates) {
-          continue;
+      let count = 0;
+      for (const item of args.data) {
+        const record = { ...item };
+        if (!record['id']) {
+          record['id'] = crypto.randomUUID();
         }
-        items.push({
-          id: d.id ?? crypto.randomUUID(),
-          createdAt: new Date(),
-          ...d,
-        });
-        inserted++;
+        if (args.skipDuplicates) {
+          const isDup = memStore[collectionName].some((it) => {
+            if (collectionName === 'activityLogs') {
+              return it['deviceId'] === record['deviceId'] && it['clientEventId'] === record['clientEventId'];
+            }
+            if (collectionName === 'contextSwitches') {
+              return it['deviceId'] === record['deviceId'] && it['clientEventId'] === record['clientEventId'];
+            }
+            if (collectionName === 'notificationEvents') {
+              return it['deviceId'] === record['deviceId'] && it['clientEventId'] === record['clientEventId'];
+            }
+            return false;
+          });
+          if (isDup) continue;
+        }
+        memStore[collectionName].push(record);
+        count++;
       }
-      return { count: inserted };
+      return { count };
     },
     async update(args: {
       where: Record<string, unknown>;
       data: Record<string, unknown>;
-      select?: Record<string, boolean>;
+      select?: Record<string, unknown>;
     }) {
-      const items = memStore[collectionName];
-      let targetWhere = args.where;
-      for (const [, v] of Object.entries(args.where)) {
-        if (v && typeof v === 'object' && !(v instanceof Date)) {
-          targetWhere = v as Record<string, unknown>;
-        }
-      }
-      const idx = items.findIndex((it) => matchesWhere(it, targetWhere));
-      const target = items[idx];
-      if (idx !== -1 && target) {
-        const updated = { ...target, ...args.data };
-        items[idx] = updated;
-        return selectFields(updated, args.select);
+      const idx = memStore[collectionName].findIndex((it) => matchesWhere(it, args.where));
+      if (idx !== -1) {
+        const updated = { ...memStore[collectionName][idx], ...args.data };
+        memStore[collectionName][idx] = updated;
+        return projectRecord(updated, args.select);
       }
       return null;
-    },
-    async updateMany(args: { where: Record<string, unknown>; data: Record<string, unknown> }) {
-      const items = memStore[collectionName];
-      let count = 0;
-      for (let i = 0; i < items.length; i++) {
-        const it = items[i];
-        if (it && matchesWhere(it, args.where)) {
-          items[i] = { ...it, ...args.data };
-          count++;
-        }
-      }
-      return { count };
     },
     async upsert(args: {
       where: Record<string, unknown>;
       create: Record<string, unknown>;
       update: Record<string, unknown>;
     }) {
-      let targetWhere = args.where;
-      for (const [, v] of Object.entries(args.where)) {
-        if (v && typeof v === 'object' && !(v instanceof Date)) {
-          targetWhere = v as Record<string, unknown>;
+      const idx = memStore[collectionName].findIndex((it) => {
+        for (const [key, val] of Object.entries(args.where)) {
+          if (key.includes('_')) {
+            const composite = val as Record<string, unknown>;
+            for (const [cKey, cVal] of Object.entries(composite)) {
+              if (it[cKey] !== cVal) return false;
+            }
+            continue;
+          }
+          if (it[key] !== val) return false;
         }
+        return true;
+      });
+      if (idx !== -1) {
+        const updated = { ...memStore[collectionName][idx], ...args.update };
+        memStore[collectionName][idx] = updated;
+        return updated;
       }
-      const existing = await this.findUnique({ where: targetWhere });
-      if (existing) {
-        return this.update({ where: targetWhere, data: args.update });
+      const record = { ...args.create };
+      if (!record['id']) {
+        record['id'] = crypto.randomUUID();
       }
-      return this.create({ data: args.create });
+      memStore[collectionName].push(record);
+      return record;
     },
     async delete(args: { where: Record<string, unknown> }) {
-      const items = memStore[collectionName];
-      const idx = items.findIndex((it) => matchesWhere(it, args.where));
+      const idx = memStore[collectionName].findIndex((it) => matchesWhere(it, args.where));
       if (idx !== -1) {
-        const removed = items.splice(idx, 1)[0];
-        return removed;
+        const deleted = memStore[collectionName].splice(idx, 1)[0];
+        return deleted;
       }
       return null;
     },
@@ -295,7 +332,7 @@ function createModelHandler(collectionName: keyof Store, pkFields: string[] = ['
       }
       const before = memStore[collectionName].length;
       memStore[collectionName] = memStore[collectionName].filter(
-        (it) => !matchesWhere(it, args.where as Record<string, unknown>),
+        (it) => !matchesWhere(it, args.where!),
       );
       return { count: before - memStore[collectionName].length };
     },
@@ -335,6 +372,7 @@ export function patchPrismaWithMemoryStore(): void {
 }
 
 export async function resetDatabase(): Promise<void> {
+  clearCategoriesCache();
   const connected = await checkDbConnection();
   if (connected) {
     await prisma.$executeRawUnsafe(`
@@ -389,14 +427,18 @@ export async function createTestUser(
   return { user, password };
 }
 
-export async function createTestDevice(userId: string, name = 'Test Chrome') {
+export async function createTestDevice(
+  userId: string,
+  name = 'Test Chrome',
+  platform: 'chrome' | 'windows' = 'chrome',
+) {
   const rawToken = 'atn_' + crypto.randomBytes(32).toString('base64url');
   const tokenHash = hashToken(rawToken);
   const device = await prisma.device.create({
     data: {
       userId,
       name,
-      platform: 'chrome',
+      platform,
       tokenHash,
       lastSeenAt: null,
       revokedAt: null,

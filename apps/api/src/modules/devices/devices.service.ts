@@ -66,7 +66,7 @@ export const devicesService = {
         data: {
           userId: codeRecord.userId,
           name: input.deviceName,
-          platform: 'chrome',
+          platform: input.platform ?? 'chrome',
           tokenHash,
         },
         select: {
@@ -139,7 +139,7 @@ export const devicesService = {
       prisma.activityLog.findFirst({
         where: { userId },
         orderBy: { endedAt: 'desc' },
-        select: { domain: true, endedAt: true, durationSec: true },
+        select: { domain: true, appName: true, endedAt: true, durationSec: true },
       }),
     ]);
 
@@ -149,7 +149,7 @@ export const devicesService = {
       todayStats: {
         activityCount,
         switchCount,
-        lastDomain: lastActivity?.domain ?? null,
+        lastDomain: lastActivity?.domain ?? lastActivity?.appName ?? null,
         lastEventAt: lastActivity?.endedAt ? lastActivity.endedAt.toISOString() : null,
       },
       extensionName: 'Digital Attention Tracker',
@@ -195,4 +195,3 @@ export const devicesService = {
     };
   },
 };
-

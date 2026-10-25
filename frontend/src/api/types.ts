@@ -79,6 +79,7 @@ export interface ActivitySummary {
   switchCount: number;
   notificationCount: number;
   topSites: TopSite[];
+  topApps?: TopSite[];
 }
 
 export interface HourlyUsageItem {
@@ -116,13 +117,14 @@ export type SessionCategory = 'productive' | 'social' | 'communication' | 'enter
 
 export interface ActivitySession {
   id: string;
-  domain: string;
+  source?: 'browser' | 'desktop';
+  domain: string | null;
+  appName?: string | null;
   category: SessionCategory;
   startedAt: string;
   endedAt: string;
   durationSec: number;
   idle: boolean;
-  appName?: string;
   siteName?: string;
   device?: {
     name: string;
@@ -169,7 +171,7 @@ export interface PaginationParams {
 export interface DeviceItem {
   id: string;
   name: string;
-  platform: 'chrome';
+  platform: 'chrome' | 'windows';
   lastSeenAt: string | null;
   revokedAt: string | null;
 }
@@ -192,5 +194,3 @@ export interface ExtensionStatusResponse {
   version: string;
   syncEndpoint: string;
 }
-
-

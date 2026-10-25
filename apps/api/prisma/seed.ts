@@ -1,4 +1,4 @@
-import { PrismaClient, Category } from '@prisma/client';
+import { PrismaClient, Category, CategoryKind } from '@prisma/client';
 import process from 'node:process';
 
 const prisma = new PrismaClient();
@@ -32,18 +32,69 @@ const DOMAIN_CATEGORIES: Array<{ pattern: string; category: Category }> = [
   { pattern: 'localhost', category: Category.productive },
 ];
 
-export async function seedDomainCategories() {
+const APP_CATEGORIES: Array<{ pattern: string; category: Category }> = [
+  // productive
+  { pattern: 'code', category: Category.productive },
+  { pattern: 'cursor', category: Category.productive },
+  { pattern: 'windowsterminal', category: Category.productive },
+  { pattern: 'notepad', category: Category.productive },
+  { pattern: 'winword', category: Category.productive },
+  { pattern: 'excel', category: Category.productive },
+  { pattern: 'powerpnt', category: Category.productive },
+  { pattern: 'figma', category: Category.productive },
+
+  // communication
+  { pattern: 'whatsapp', category: Category.communication },
+  { pattern: 'slack', category: Category.communication },
+  { pattern: 'teams', category: Category.communication },
+  { pattern: 'ms-teams', category: Category.communication },
+  { pattern: 'discord', category: Category.communication },
+  { pattern: 'outlook', category: Category.communication },
+
+  // entertainment
+  { pattern: 'spotify', category: Category.entertainment },
+  { pattern: 'vlc', category: Category.entertainment },
+  { pattern: 'steam', category: Category.entertainment },
+];
+
+export async function seedCategories() {
   for (const item of DOMAIN_CATEGORIES) {
     await prisma.domainCategory.upsert({
-      where: { pattern: item.pattern },
+      where: {
+        kind_pattern: {
+          kind: CategoryKind.domain,
+          pattern: item.pattern,
+        },
+      },
       update: { category: item.category },
-      create: { pattern: item.pattern, category: item.category },
+      create: {
+        kind: CategoryKind.domain,
+        pattern: item.pattern,
+        category: item.category,
+      },
+    });
+  }
+
+  for (const item of APP_CATEGORIES) {
+    await prisma.domainCategory.upsert({
+      where: {
+        kind_pattern: {
+          kind: CategoryKind.app,
+          pattern: item.pattern,
+        },
+      },
+      update: { category: item.category },
+      create: {
+        kind: CategoryKind.app,
+        pattern: item.pattern,
+        category: item.category,
+      },
     });
   }
 }
 
 async function main() {
-  await seedDomainCategories();
+  await seedCategories();
 }
 
 main()

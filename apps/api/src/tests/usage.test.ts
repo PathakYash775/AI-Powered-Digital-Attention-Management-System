@@ -288,4 +288,78 @@ describe('Usage and Rollup Module', () => {
     expect(firstResult?.activeSec).toBe(1800);
     expect(firstResult?.totalScreenSec).toBe(1800);
   });
+
+  it('summary includes topApps alongside topSites, and combines both sources in totals and categories', async () => {
+    const { user } = await createTestUser('desktopusage@example.com', 'Password123!', 'Desktop Usage');
+    const { device: chromeDev } = await createTestDevice(user.id, 'Chrome', 'chrome');
+    const { device: winDev } = await createTestDevice(user.id, 'Windows', 'windows');
+    const token = await getAuthToken(user.id);
+    const dateStr = '2026-10-15';
+
+    await prisma.activityLog.createMany({
+      data: [
+        {
+          userId: user.id,
+          deviceId: chromeDev.id,
+          clientEventId: 'act-web-1',
+          source: 'browser',
+          domain: 'github.com',
+          appName: null,
+          category: 'productive',
+          startedAt: new Date('2026-10-15T10:00:00.000Z'),
+          endedAt: new Date('2026-10-15T10:01:40.000Z'),
+          durationSec: 100,
+          idle: false,
+        },
+        {
+          userId: user.id,
+          deviceId: winDev.id,
+          clientEventId: 'act-app-1',
+          source: 'desktop',
+          domain: null,
+          appName: 'code',
+          category: 'productive',
+          startedAt: new Date('2026-10-15T10:05:00.000Z'),
+          endedAt: new Date('2026-10-15T10:07:00.000Z'),
+          durationSec: 120,
+          idle: false,
+        },
+        {
+          userId: user.id,
+          deviceId: winDev.id,
+          clientEventId: 'act-app-2',
+          source: 'desktop',
+          domain: null,
+          appName: 'spotify',
+          category: 'entertainment',
+          startedAt: new Date('2026-10-15T10:10:00.000Z'),
+          endedAt: new Date('2026-10-15T10:11:00.000Z'),
+          durationSec: 60,
+          idle: false,
+        },
+      ],
+    });
+
+    await recomputeUsageForDates(user.id, [dateStr]);
+
+    const res = await request(app)
+      .get(`/api/v1/activity/summary?date=${dateStr}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.date).toBe(dateStr);
+    expect(res.body.activeSec).toBe(280);
+    expect(res.body.totalScreenSec).toBe(280);
+    expect(res.body.topSites).toEqual([
+      { name: 'github.com', durationSec: 100 },
+    ]);
+    expect(res.body.topApps).toEqual([
+      { name: 'code', durationSec: 120 },
+      { name: 'spotify', durationSec: 60 },
+    ]);
+    const productiveCat = res.body.byCategory.find((c: { category: string }) => c.category === 'productive');
+    const entertainmentCat = res.body.byCategory.find((c: { category: string }) => c.category === 'entertainment');
+    expect(productiveCat?.durationSec).toBe(220);
+    expect(entertainmentCat?.durationSec).toBe(60);
+  });
 });

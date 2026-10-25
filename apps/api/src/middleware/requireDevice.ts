@@ -9,6 +9,7 @@ declare global {
       device?: {
         id: string;
         userId: string;
+        platform: 'chrome' | 'windows';
       };
     }
   }
@@ -41,6 +42,7 @@ export async function requireDevice(
         req.device = {
           id: devDevice.id,
           userId: devDevice.userId,
+          platform: devDevice.platform as 'chrome' | 'windows',
         };
         return next();
       }
@@ -70,6 +72,7 @@ export async function requireDevice(
   req.device = {
     id: device.id,
     userId: device.userId,
+    platform: device.platform as 'chrome' | 'windows',
   };
 
   next();

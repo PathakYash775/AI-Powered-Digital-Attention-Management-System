@@ -173,8 +173,9 @@ export function getSummaryForDate(dateStr: string): ActivitySummary {
     } else {
       activeSec += s.durationSec;
     }
-    const current = siteDurationMap.get(s.domain) || 0;
-    siteDurationMap.set(s.domain, current + s.durationSec);
+    const siteKey = s.domain ?? s.appName ?? 'unknown';
+    const current = siteDurationMap.get(siteKey) || 0;
+    siteDurationMap.set(siteKey, current + s.durationSec);
   }
 
   const topSites = Array.from(siteDurationMap.entries())
@@ -190,5 +191,6 @@ export function getSummaryForDate(dateStr: string): ActivitySummary {
     switchCount: daySwitches.length,
     notificationCount: dayNotifs.length,
     topSites,
+    topApps: [],
   };
 }

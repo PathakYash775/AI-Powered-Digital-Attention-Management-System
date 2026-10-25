@@ -11,10 +11,12 @@ function isValidTimestamp(val: string): boolean {
 }
 
 const domainRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/;
+export const desktopAppRegex = /^[a-z0-9][a-z0-9 ._-]{0,63}$/;
 
-export const activityEventSchema = z
+export const browserActivityEventSchema = z
   .object({
     clientEventId: z.string().min(1).max(64),
+    source: z.literal('browser').optional().default('browser'),
     domain: z
       .string()
       .trim()
@@ -38,6 +40,36 @@ export const activityEventSchema = z
     (e) => (new Date(e.endedAt).getTime() - new Date(e.startedAt).getTime()) / 1000 <= 86400,
     { message: 'Duration must be less than or equal to 86400 seconds', path: ['endedAt'] },
   );
+
+export const desktopActivityEventSchema = z
+  .object({
+    clientEventId: z.string().min(1).max(64),
+    source: z.literal('desktop').optional().default('desktop'),
+    app: z
+      .string()
+      .regex(desktopAppRegex, 'Invalid app format'),
+    startedAt: z.string().refine(isValidTimestamp, {
+      message: 'Timestamp must not be older than 7 days or more than 5 minutes in the future',
+    }),
+    endedAt: z.string().refine(isValidTimestamp, {
+      message: 'Timestamp must not be older than 7 days or more than 5 minutes in the future',
+    }),
+    idle: z.boolean(),
+  })
+  .strict()
+  .refine(
+    (e) => new Date(e.startedAt).getTime() < new Date(e.endedAt).getTime(),
+    { message: 'startedAt must be before endedAt', path: ['endedAt'] },
+  )
+  .refine(
+    (e) => (new Date(e.endedAt).getTime() - new Date(e.startedAt).getTime()) / 1000 <= 86400,
+    { message: 'Duration must be less than or equal to 86400 seconds', path: ['endedAt'] },
+  );
+
+export const activityEventSchema = z.union([
+  desktopActivityEventSchema,
+  browserActivityEventSchema,
+]);
 
 export const ingestActivitySchema = z
   .object({
@@ -78,6 +110,9 @@ export const ingestNotificationsSchema = z
   })
   .strict();
 
+export type BrowserActivityEvent = z.infer<typeof browserActivityEventSchema>;
+export type DesktopActivityEvent = z.infer<typeof desktopActivityEventSchema>;
+export type ActivityEvent = z.infer<typeof activityEventSchema>;
 export type IngestActivityInput = z.infer<typeof ingestActivitySchema>;
 export type IngestSwitchesInput = z.infer<typeof ingestSwitchesSchema>;
 export type IngestNotificationsInput = z.infer<typeof ingestNotificationsSchema>;

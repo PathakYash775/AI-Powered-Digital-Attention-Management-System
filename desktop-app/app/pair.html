@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attention Management System - Pair Desktop App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 36px 32px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+    .icon {
+      font-size: 44px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .instructions {
+      background: #090d16;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #cbd5e1;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    .instructions ol {
+      margin-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .code-input {
+      width: 100%;
+      background: #090d16;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      color: #38bdf8;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-align: center;
+      padding: 12px;
+      outline: none;
+      text-transform: uppercase;
+      transition: border-color 0.2s;
+    }
+    .code-input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+    .btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #1d4ed8; }
+    .btn:disabled { background: #475569; cursor: not-allowed; }
+    .alert {
+      margin-top: 16px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+    .alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .alert-success {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+    .skip-btn {
+      margin-top: 12px;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .skip-btn:hover { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">💻</div>
+    <h1>Connect Windows Desktop Tracker</h1>
+    <p>Pair this desktop app to your account to begin tracking your active application focus sessions.</p>
+
+    <div class="instructions">
+      <ol>
+        <li>Open your Dashboard in the browser.</li>
+        <li>Go to <strong>Settings &gt; Connected Devices</strong>.</li>
+        <li>Click <strong>Pair Device</strong> and enter the 8-character code below:</li>
+      </ol>
+    </div>
+
+    <form id="pair-form" onsubmit="handlePair(event)">
+      <div class="input-group">
+        <label for="pair-code">8-Character Pairing Code</label>
+        <input
+          type="text"
+          id="pair-code"
+          class="code-input"
+          maxlength="8"
+          placeholder="XXXXXXXX"
+          autocomplete="off"
+          autofocus
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn" id="submit-btn">Pair Desktop App</button>
+    </form>
+
+    <div id="error-box" class="alert alert-error"></div>
+    <div id="success-box" class="alert alert-success"></div>
+
+    <button class="skip-btn" onclick="skipToDashboard()">Skip pairing for now (view dashboard only)</button>
+  </div>
+
+  <script>
+    const input = document.getElementById('pair-code');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorBox = document.getElementById('error-box');
+    const successBox = document.getElementById('success-box');
+
+    // Auto-uppercase
+    input.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-HJ-KM-NP-Z2-9]/g, '');
+    });
+
+    async function handlePair(e) {
+      e.preventDefault();
+      const code = input.value.trim().toUpperCase();
+      if (code.length !== 8) {
+        showError("Please enter a valid 8-character pairing code.");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Connecting...";
+      hideAlerts();
+
+      try {
+        // If running inside PyWebView with Python API exposed
+        if (window.pywebview && window.pywebview.api && window.pywebview.api.pair) {
+          const res = await window.pywebview.api.pair(code);
+          if (res.success) {
+            showSuccess("Device paired successfully! Launching dashboard...");
+            setTimeout(() => {
+              window.location.href = res.dashboardUrl || "http://localhost:5173";
+            }, 1200);
+          } else {
+            showError(res.error || "Pairing failed. Please check your code.");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Pair Desktop App";
+          }
+          return;
+        }
+
+        // Direct fetch fallback to backend
+        const resp = await fetch("http://localhost:8000/api/v1/devices/pair", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: code,
+            deviceName: "Windows Desktop",
+            platform: "windows"
+          })
+        });
+
+        const data = await resp.json();
+        if (resp.ok && data.data && data.data.token) {
+          showSuccess("Device paired successfully! Launching dashboard...");
+          setTimeout(() => {
+            window.location.href = "http://localhost:5173";
+          }, 1200);
+        } else {
+          showError(data.error?.message || data.message || "Invalid or expired pairing code.");
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Pair Desktop App";
+        }
+      } catch (err) {
+        showError("Could not reach backend server on http://localhost:8000. Is it running?");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Pair Desktop App";
+      }
+    }
+
+    function skipToDashboard() {
+      window.location.href = "http://localhost:5173";
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = 'block';
+      successBox.style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      successBox.textContent = msg;
+      successBox.style.display = 'block';
+      errorBox.style.display = 'none';
+    }
+
+    function hideAlerts() {
+      errorBox.style.display = 'none';
+      successBox.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

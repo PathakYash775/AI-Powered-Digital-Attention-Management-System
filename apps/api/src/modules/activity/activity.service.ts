@@ -112,7 +112,7 @@ const DOMAIN_APP_MAP: Record<string, string> = {
   chrome: 'Google Chrome',
 };
 
-function resolveAppName(domain: string): string {
+function resolveAppName(domain: string | null): string {
   if (!domain) return 'Unknown Application';
   let clean = domain.trim();
   if (!clean) return 'Unknown Application';
@@ -196,6 +196,7 @@ export const activityService = {
         switchCount: 0,
         notificationCount: 0,
         topSites: [],
+        topApps: [],
         byCategory: {},
         hourly,
       };
@@ -203,6 +204,10 @@ export const activityService = {
 
     const topSites = Array.isArray(stat.topSites)
       ? (stat.topSites as Array<{ name: string; durationSec: number }>)
+      : [];
+
+    const topApps = Array.isArray((stat as any).topApps)
+      ? ((stat as any).topApps as Array<{ name: string; durationSec: number }>)
       : [];
 
     const byCategory =
@@ -216,6 +221,7 @@ export const activityService = {
       switchCount: stat.switchCount,
       notificationCount: stat.notificationCount,
       topSites,
+      topApps,
       byCategory,
       hourly,
     };
@@ -312,7 +318,9 @@ export const activityService = {
       },
       select: {
         id: true,
+        source: true,
         domain: true,
+        appName: true,
         category: true,
         startedAt: true,
         endedAt: true,
@@ -332,12 +340,13 @@ export const activityService = {
     const hasMore = rows.length > limit;
     const rawItems = hasMore ? rows.slice(0, limit) : rows;
     const items = rawItems.map((r) => {
-      const appName = resolveAppName(r.domain);
+      const resolvedName = r.appName || (r.domain ? resolveAppName(r.domain) : 'Unknown');
       return {
         id: r.id,
+        source: r.source,
         domain: r.domain,
-        appName,
-        siteName: appName,
+        appName: r.appName,
+        siteName: resolvedName,
         device: r.device,
         category: r.category,
         startedAt: r.startedAt,

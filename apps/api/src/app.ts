@@ -154,6 +154,7 @@ export function createApp(): Express {
         events: [
           {
             clientEventId,
+            source: 'browser',
             domain,
             startedAt: startedAt.toISOString(),
             endedAt: endedAt.toISOString(),
@@ -179,7 +180,7 @@ export function createApp(): Express {
               userId: defaultUser.id,
               deviceId: device.id,
               clientEventId: 'sw_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-              fromApp: previousActivity.domain,
+              fromApp: previousActivity.domain ?? previousActivity.appName ?? 'unknown',
               toApp: domain,
               switchedAt: startedAt,
             },

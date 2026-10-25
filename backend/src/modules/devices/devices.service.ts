@@ -66,7 +66,7 @@ export const devicesService = {
         data: {
           userId: codeRecord.userId,
           name: input.deviceName,
-          platform: 'chrome',
+          platform: input.platform ?? 'chrome',
           tokenHash,
         },
         select: {
@@ -121,8 +121,10 @@ export const devicesService = {
       select: { id: true, name: true, platform: true, lastSeenAt: true },
     });
 
-    const recentThreshold = new Date(Date.now() - 60 * 1000);
+    const isConnected = Boolean(activeDevice);
+    const recentThreshold = new Date(Date.now() - 5 * 60 * 1000);
     const isRecentlyActive = Boolean(activeDevice?.lastSeenAt && activeDevice.lastSeenAt >= recentThreshold);
+    void isRecentlyActive;
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -137,26 +139,26 @@ export const devicesService = {
       prisma.activityLog.findFirst({
         where: { userId },
         orderBy: { endedAt: 'desc' },
-        select: { domain: true, endedAt: true, durationSec: true },
+        select: { domain: true, appName: true, endedAt: true, durationSec: true },
       }),
     ]);
 
     return {
-      connected: isRecentlyActive,
+      connected: isConnected,
       activeDevice,
       todayStats: {
         activityCount,
         switchCount,
-        lastDomain: lastActivity?.domain ?? null,
+        lastDomain: lastActivity?.domain ?? lastActivity?.appName ?? null,
         lastEventAt: lastActivity?.endedAt ? lastActivity.endedAt.toISOString() : null,
       },
-      extensionName: 'Web Activity Time Tracker',
-      version: '2.5.0',
-      syncEndpoint: 'http://127.0.0.1:8000/api/v1/ingest',
+      extensionName: 'Digital Attention Tracker',
+      version: '1.0.0',
+      syncEndpoint: 'http://127.0.0.1:8000/api/activity',
     };
   },
 
-  async autoLinkDevice(userId: string, deviceName = 'Web Activity Time Tracker (Chrome)') {
+  async autoLinkDevice(userId: string, deviceName = 'Digital Attention Tracker (Chrome)') {
     let device = await prisma.device.findFirst({
       where: { userId, name: deviceName, revokedAt: null },
     });
@@ -193,4 +195,3 @@ export const devicesService = {
     };
   },
 };
-

@@ -1,4 +1,4 @@
-import type { Category } from '@prisma/client';
+import type { Category, CategoryKind } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import {
   collectAffectedDatesForActivity,
@@ -11,10 +11,10 @@ import type {
   IngestSwitchesInput,
 } from './ingest.schemas.js';
 
-let categoriesCache: Array<{ pattern: string; category: Category }> | null = null;
+let categoriesCache: Array<{ kind: CategoryKind; pattern: string; category: Category }> | null = null;
 let lastCacheTime = 0;
 
-async function getDomainCategories(): Promise<Array<{ pattern: string; category: Category }>> {
+export async function getCategories(): Promise<Array<{ kind: CategoryKind; pattern: string; category: Category }>> {
   const now = Date.now();
   if (!categoriesCache || now - lastCacheTime > 60000) {
     categoriesCache = await prisma.domainCategory.findMany();
@@ -23,36 +23,57 @@ async function getDomainCategories(): Promise<Array<{ pattern: string; category:
   return categoriesCache;
 }
 
+export function clearCategoriesCache(): void {
+  categoriesCache = null;
+  lastCacheTime = 0;
+}
+
 export function matchDomainCategory(
   domain: string,
-  categories: Array<{ pattern: string; category: Category }>,
+  categories: Array<{ kind: CategoryKind; pattern: string; category: Category }>,
 ): Category {
   let bestMatch: { pattern: string; category: Category } | null = null;
   for (const cat of categories) {
-    if (domain === cat.pattern || domain.endsWith('.' + cat.pattern)) {
-      if (!bestMatch || cat.pattern.length > bestMatch.pattern.length) {
-        bestMatch = cat;
+    if (cat.kind === 'domain') {
+      if (domain === cat.pattern || domain.endsWith('.' + cat.pattern)) {
+        if (!bestMatch || cat.pattern.length > bestMatch.pattern.length) {
+          bestMatch = cat;
+        }
       }
     }
   }
   return bestMatch ? bestMatch.category : 'other';
 }
 
+export function matchAppCategory(
+  app: string,
+  categories: Array<{ kind: CategoryKind; pattern: string; category: Category }>,
+): Category {
+  const lower = app.toLowerCase();
+  const match = categories.find((c) => c.kind === 'app' && c.pattern.toLowerCase() === lower);
+  return match ? match.category : 'other';
+}
+
 export const ingestService = {
   async ingestActivity(userId: string, deviceId: string, input: IngestActivityInput) {
-    const categories = await getDomainCategories();
+    const categories = await getCategories();
 
     const records = input.events.map((e) => {
       const startedAt = new Date(e.startedAt);
       const endedAt = new Date(e.endedAt);
       const durationSec = Math.round((endedAt.getTime() - startedAt.getTime()) / 1000);
-      const category = matchDomainCategory(e.domain, categories);
+      const isDesktop = e.source === 'desktop';
+      const category = isDesktop
+        ? matchAppCategory(e.app, categories)
+        : matchDomainCategory(e.domain, categories);
 
       return {
         userId,
         deviceId,
         clientEventId: e.clientEventId,
-        domain: e.domain,
+        source: isDesktop ? ('desktop' as const) : ('browser' as const),
+        domain: isDesktop ? null : e.domain,
+        appName: isDesktop ? e.app.toLowerCase() : null,
         category,
         startedAt,
         endedAt,

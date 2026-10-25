@@ -86,10 +86,12 @@ export function ActivityPage() {
   const hasConnectedDevice = devices.length > 0;
 
   // Active applications
-  const uniqueAppsCount = summary?.topSites?.length ?? allSessions.length;
+  const uniqueAppsCount = (summary?.topSites?.length ?? 0) + (summary?.topApps?.length ?? 0) || allSessions.length;
   const topApp = summary?.topSites?.[0]?.name
     ? formatAppName(summary.topSites[0].name)
-    : (allSessions[0] ? formatAppName(allSessions[0].domain || allSessions[0].appName) : 'N/A');
+    : summary?.topApps?.[0]?.name
+      ? formatAppName(summary.topApps[0].name)
+      : (allSessions[0] ? formatAppName(allSessions[0].appName || allSessions[0].domain) : 'N/A');
 
   // Check if hourly patterns have actual recorded telemetry
   const hasHourlyData = hourlyPatterns.some((h) => h.activeSec > 0 || h.idleSec > 0);
@@ -393,11 +395,8 @@ export function ActivityPage() {
                   </thead>
                   <tbody>
                     {allSessions.map((s) => {
-                      const appName =
-                        s.appName && s.appName !== 'Google Chrome'
-                          ? s.appName
-                          : formatAppName(s.domain);
-
+                      const displayName = s.appName || (s.domain ? formatAppName(s.domain) : 'Unknown Application');
+                      const isDesktop = s.source === 'desktop' || (!s.domain && Boolean(s.appName)) || s.device?.platform === 'windows';
                       const isChrome =
                         s.device?.platform === 'chrome' ||
                         s.device?.name?.toLowerCase().includes('chrome');
@@ -406,11 +405,12 @@ export function ActivityPage() {
                         <tr key={s.id}>
                           <td className={styles.domainCell}>
                             <div className={styles.appCellContainer}>
-                              <span className={styles.appNameTitle}>{appName}</span>
+                              <span className={styles.appNameTitle}>{displayName}</span>
                               <div className={styles.appSubDetails}>
-                                <span className={styles.appDomainBadge}>{s.domain}</span>
+                                {s.domain && <span className={styles.appDomainBadge}>{s.domain}</span>}
+                                {s.appName && !s.domain && <span className={styles.appDomainBadge}>{s.appName}</span>}
                                 <span className={styles.appPlatformTag}>
-                                  {isChrome ? 'Google Chrome' : (s.device?.name || 'Desktop App')}
+                                  {isDesktop ? (s.device?.name || 'Windows Desktop App') : (isChrome ? 'Google Chrome' : (s.device?.name || 'Web Browser'))}
                                 </span>
                               </div>
                             </div>
