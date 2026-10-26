@@ -16,7 +16,11 @@ from typing import Optional
 
 from tracker.config import TrackerConfig, load_config
 from tracker.engine import TrackerEngine
-from app.single_instance import SingleInstance
+from app.single_instance import (
+    SingleInstance,
+    signal_existing_instance,
+    SHOW_EVENT_NAME,
+)
 from app.autostart import set_autostart, is_autostart_enabled
 from app.pairing import (
     get_stored_device_token,
@@ -53,25 +57,27 @@ class DesktopAppJsApi:
     """JavaScript API bridge exposed to the WebView window."""
 
     def __init__(self, shell: "AttentionDesktopApp") -> None:
-        self.shell = shell
+        self._shell = shell
 
     def pair(self, code: str) -> dict:
         """Called by pair.html when user submits an 8-character pairing code."""
-        success, token_or_err = pair_device(self.shell.config.api_base_url, code)
+        success, token_or_err = pair_device(self._shell.config.api_base_url, code)
         if success:
-            self.shell.on_device_paired(token_or_err)
-            return {"success": True, "dashboardUrl": self.shell.dashboard_url}
+            self._shell.on_device_paired(token_or_err)
+            return {"success": True, "dashboardUrl": self._shell.dashboard_url}
         else:
             return {"success": False, "error": token_or_err}
 
     def check_health(self) -> dict:
         """Check status of backend and frontend."""
-        frontend_ok = is_service_reachable(self.shell.dashboard_url)
-        backend_ok = is_service_reachable(f"{self.shell.config.api_base_url.rstrip('/')}/health")
+        base = self._shell.config.api_base_url.rstrip("/")
+        if base.endswith("/api/v1"):
+            base = base[:-7]
+        backend_ok = is_service_reachable(f"{base}/healthz")
         return {
             "frontendReachable": frontend_ok,
             "backendReachable": backend_ok,
-            "trackingActive": self.shell.engine is not None and not self.shell.engine.is_paused,
+            "trackingActive": self._shell.engine is not None and not self._shell.engine.is_paused,
         }
 
 
@@ -96,6 +102,7 @@ class AttentionDesktopApp:
         self.app_dir = base_dir / "app"
         self.assets_dir = base_dir / "assets"
         self._is_terminating = False
+        self.show_event = None
 
         # Load stored token if not in config
         if not self.config.device_token:
@@ -236,6 +243,14 @@ class AttentionDesktopApp:
             except Exception as e:
                 logger.error(f"Error stopping engine: {e}")
 
+        if self.show_event:
+            try:
+                import ctypes
+                ctypes.windll.kernel32.CloseHandle(self.show_event)
+            except Exception:
+                pass
+            self.show_event = None
+
         if self.tray_icon:
             try:
                 self.tray_icon.stop()
@@ -252,20 +267,50 @@ class AttentionDesktopApp:
 
         sys.exit(0)
 
+    def _listen_for_show_event(self) -> None:
+        """Background thread waiting for signal from a secondary instance to restore window."""
+        if not self.show_event:
+            return
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            while not self._is_terminating:
+                res = kernel32.WaitForSingleObject(self.show_event, 500)
+                if res == 0:  # WAIT_OBJECT_0
+                    logger.info("Received show window signal from secondary instance.")
+                    if self.window:
+                        try:
+                            self.window.restore()
+                            self.window.show()
+                        except Exception as e:
+                            logger.debug(f"Error restoring window via show event: {e}")
+        except Exception as e:
+            logger.debug(f"Exception in _listen_for_show_event: {e}")
+
     def run(self) -> None:
         """Main application entry point."""
         # 1. Single instance check
         if not self.single_instance.acquire():
-            print("Another instance of AttentionTracker is already running.")
+            print("Another instance of AttentionTracker is already running. Restoring existing window...")
+            signal_existing_instance()
             sys.exit(0)
 
-        # 2. Start tracker engine
+        # 2. Start listener for show signals from secondary instances
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            self.show_event = kernel32.CreateEventW(None, False, False, SHOW_EVENT_NAME)
+            threading.Thread(target=self._listen_for_show_event, daemon=True).start()
+        except Exception as e:
+            logger.debug(f"Failed to create show event: {e}")
+
+        # 3. Start tracker engine
         self.initialize_tracker()
 
-        # 3. Start tray icon
+        # 4. Start tray icon
         self.create_tray_icon()
 
-        # 4. Start PyWebView
+        # 5. Start PyWebView
         initial_url = self.get_initial_url()
         js_api = DesktopAppJsApi(self)
 

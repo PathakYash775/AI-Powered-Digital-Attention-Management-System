@@ -224,7 +224,8 @@
         });
 
         const data = await resp.json();
-        if (resp.ok && data.data && data.data.token) {
+        const token = data.deviceToken || data.token || data.data?.token;
+        if (resp.ok && token) {
           showSuccess("Device paired successfully! Launching dashboard...");
           setTimeout(() => {
             window.location.href = "http://localhost:5173";

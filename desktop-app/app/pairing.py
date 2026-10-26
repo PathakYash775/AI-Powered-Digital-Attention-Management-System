@@ -101,7 +101,10 @@ def pair_device(api_base_url: str, pairing_code: str, device_name: Optional[str]
     if not device_name:
         device_name = f"{socket.gethostname()} (Windows Desktop)"
 
-    url = f"{api_base_url.rstrip('/')}/api/v1/devices/pair"
+    base = api_base_url.rstrip("/")
+    if base.endswith("/api/v1"):
+        base = base[:-7]
+    url = f"{base}/api/v1/devices/pair"
     payload = json.dumps({
         "code": code,
         "deviceName": device_name,
@@ -118,7 +121,7 @@ def pair_device(api_base_url: str, pairing_code: str, device_name: Optional[str]
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            token = data.get("data", {}).get("token")
+            token = data.get("deviceToken") or data.get("token") or data.get("data", {}).get("token")
             if token:
                 store_device_token(token)
                 return True, token

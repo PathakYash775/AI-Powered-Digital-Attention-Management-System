@@ -12,6 +12,25 @@ logger = logging.getLogger(__name__)
 ERROR_ALREADY_EXISTS = 183
 
 
+SHOW_EVENT_NAME = "Local\\AttentionTrackerShowWindowEvent"
+
+
+def signal_existing_instance() -> bool:
+    """Signal existing running instance to show its window."""
+    try:
+        kernel32 = ctypes.windll.kernel32
+        EVENT_MODIFY_STATE = 0x0002
+        event = kernel32.OpenEventW(EVENT_MODIFY_STATE, False, SHOW_EVENT_NAME)
+        if event:
+            kernel32.SetEvent(event)
+            kernel32.CloseHandle(event)
+            logger.info("Signaled existing AttentionTracker instance to show window.")
+            return True
+    except Exception as e:
+        logger.debug(f"Could not signal existing instance: {e}")
+    return False
+
+
 class SingleInstance:
     """Acquires a named Win32 mutex. If already held by another process, acquire() returns False."""
 

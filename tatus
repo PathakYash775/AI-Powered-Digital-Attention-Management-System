@@ -1,0 +1,368 @@
+warning: in the working copy of 'apps/web/src/features/devices/DevicePairingSection.module.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/web/src/features/devices/DevicePairingSection.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'desktop-app/app/pair.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'desktop-app/app/pairing.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'desktop-app/app/shell.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'desktop-app/app/single_instance.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'desktop-app/scripts/build.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/features/devices/DevicePairingSection.module.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/features/devices/DevicePairingSection.tsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/apps/web/src/features/devices/DevicePairingSection.module.css b/apps/web/src/features/devices/DevicePairingSection.module.css[m
+[1mindex bd7c22e..1726489 100644[m
+[1m--- a/apps/web/src/features/devices/DevicePairingSection.module.css[m
+[1m+++ b/apps/web/src/features/devices/DevicePairingSection.module.css[m
+[36m@@ -120,6 +120,106 @@[m
+   cursor: not-allowed;[m
+ }[m
+ [m
+[32m+[m[32m.generateButton {[m
+[32m+[m[32m  padding: 0.45rem 1rem;[m
+[32m+[m[32m  background: #6366f1;[m
+[32m+[m[32m  border: 1px solid #4f46e5;[m
+[32m+[m[32m  border-radius: 8px;[m
+[32m+[m[32m  font-size: 0.85rem;[m
+[32m+[m[32m  font-weight: 600;[m
+[32m+[m[32m  color: #ffffff;[m
+[32m+[m[32m  cursor: pointer;[m
+[32m+[m[32m  transition: all 0.15s ease;[m
+[32m+[m[32m  display: inline-flex;[m
+[32m+[m[32m  align-items: center;[m
+[32m+[m[32m  gap: 0.4rem;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.generateButton:hover:not(:disabled) {[m
+[32m+[m[32m  background: #4f46e5;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.generateButton:disabled {[m
+[32m+[m[32m  opacity: 0.7;[m
+[32m+[m[32m  cursor: not-allowed;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.codeCard {[m
+[32m+[m[32m  background: #0f172a;[m
+[32m+[m[32m  border: 1px solid #334155;[m
+[32m+[m[32m  border-radius: 12px;[m
+[32m+[m[32m  padding: 1.25rem 1.5rem;[m
+[32m+[m[32m  margin-bottom: 1.5rem;[m
+[32m+[m[32m  color: #f8fafc;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.codeHeader {[m
+[32m+[m[32m  display: flex;[m
+[32m+[m[32m  justify-content: space-between;[m
+[32m+[m[32m  align-items: center;[m
+[32m+[m[32m  margin-bottom: 0.75rem;[m
+[32m+[m[32m  flex-wrap: wrap;[m
+[32m+[m[32m  gap: 0.5rem;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.codeLabel {[m
+[32m+[m[32m  font-size: 0.875rem;[m
+[32m+[m[32m  font-weight: 600;[m
+[32m+[m[32m  color: #94a3b8;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.countdownBadge {[m
+[32m+[m[32m  font-size: 0.8rem;[m
+[32m+[m[32m  background: #1e293b;[m
+[32m+[m[32m  border: 1px solid #334155;[m
+[32m+[m[32m  padding: 0.2rem 0.6rem;[m
+[32m+[m[32m  border-radius: 6px;[m
+[32m+[m[32m  color: #38bdf8;[m
+[32m+[m[32m  font-weight: 600;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.codeBox {[m
+[32m+[m[32m  display: flex;[m
+[32m+[m[32m  align-items: center;[m
+[32m+[m[32m  gap: 1rem;[m
+[32m+[m[32m  margin-bottom: 0.75rem;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.codeValue {[m
+[32m+[m[32m  font-family: 'Courier New', Courier, monospace;[m
+[32m+[m[32m  font-size: 1.75rem;[m
+[32m+[m[32m  font-weight: 800;[m
+[32m+[m[32m  letter-spacing: 0.25em;[m
+[32m+[m[32m  color: #38bdf8;[m
+[32m+[m[32m  background: #1e293b;[m
+[32m+[m[32m  padding: 0.5rem 1rem;[m
+[32m+[m[32m  border-radius: 8px;[m
+[32m+[m[32m  border: 1px solid #38bdf8;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.copyBtn {[m
+[32m+[m[32m  padding: 0.5rem 1rem;[m
+[32m+[m[32m  background: #0284c7;[m
+[32m+[m[32m  border: none;[m
+[32m+[m[32m  border-radius: 6px;[m
+[32m+[m[32m  color: #ffffff;[m
+[32m+[m[32m  font-weight: 600;[m
+[32m+[m[32m  font-size: 0.85rem;[m
+[32m+[m[32m  cursor: pointer;[m
+[32m+[m[32m  transition: background 0.15s ease;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.copyBtn:hover {[m
+[32m+[m[32m  background: #0369a1;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.codeInstructions {[m
+[32m+[m[32m  font-size: 0.85rem;[m
+[32m+[m[32m  color: #cbd5e1;[m
+[32m+[m[32m  margin: 0;[m
+[32m+[m[32m  line-height: 1.5;[m
+[32m+[m[32m}[m
+[32m+[m
+ .refreshButton {[m
+   padding: 0.45rem 0.85rem;[m
+   background: var(--color-surface, #f8fafc);[m
+[1mdiff --git a/apps/web/src/features/devices/DevicePairingSection.tsx b/apps/web/src/features/devices/DevicePairingSection.tsx[m
+[1mindex 4dbbdab..b1b2555 100644[m
+[1m--- a/apps/web/src/features/devices/DevicePairingSection.tsx[m
+[1m+++ b/apps/web/src/features/devices/DevicePairingSection.tsx[m
+[36m@@ -1,12 +1,15 @@[m
+[31m-import { useState } from 'react';[m
+[32m+[m[32mimport { useState, useEffect } from 'react';[m
+ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';[m
+ import { devicesApi } from '../../api/devices';[m
+[31m-import type { ExtensionStatusResponse } from '../../api/types';[m
+[32m+[m[32mimport type { ExtensionStatusResponse, PairingCodeResponse } from '../../api/types';[m
+ import styles from './DevicePairingSection.module.css';[m
+ [m
+ export function DevicePairingSection() {[m
+   const queryClient = useQueryClient();[m
+   const [connectMessage, setConnectMessage] = useState<string | null>(null);[m
+[32m+[m[32m  const [activeCode, setActiveCode] = useState<PairingCodeResponse | null>(null);[m
+[32m+[m[32m  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);[m
+[32m+[m[32m  const [copied, setCopied] = useState(false);[m
+ [m
+   const {[m
+     data: status,[m
+[36m@@ -34,6 +37,52 @@[m [mexport function DevicePairingSection() {[m
+     },[m
+   });[m
+ [m
+[32m+[m[32m  const codeMutation = useMutation({[m
+[32m+[m[32m    mutationFn: () => devicesApi.createPairingCode(),[m
+[32m+[m[32m    onSuccess: (data) => {[m
+[32m+[m[32m      setActiveCode(data);[m
+[32m+[m[32m      const remaining = Math.max([m
+[32m+[m[32m        0,[m
+[32m+[m[32m        Math.floor((new Date(data.expiresAt).getTime() - Date.now()) / 1000),[m
+[32m+[m[32m      );[m
+[32m+[m[32m      setSecondsLeft(remaining > 0 ? remaining : 600);[m
+[32m+[m[32m      setCopied(false);[m
+[32m+[m[32m    },[m
+[32m+[m[32m    onError: () => {[m
+[32m+[m[32m      setConnectMessage('Failed to generate pairing code. Please make sure you are logged in.');[m
+[32m+[m[32m      setTimeout(() => setConnectMessage(null), 5000);[m
+[32m+[m[32m    },[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    if (!secondsLeft || secondsLeft <= 0) return;[m
+[32m+[m[32m    const timer = setInterval(() => {[m
+[32m+[m[32m      setSecondsLeft((prev) => {[m
+[32m+[m[32m        if (!prev || prev <= 1) {[m
+[32m+[m[32m          clearInterval(timer);[m
+[32m+[m[32m          setActiveCode(null);[m
+[32m+[m[32m          return null;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return prev - 1;[m
+[32m+[m[32m      });[m
+[32m+[m[32m    }, 1000);[m
+[32m+[m[32m    return () => clearInterval(timer);[m
+[32m+[m[32m  }, [secondsLeft]);[m
+[32m+[m
+[32m+[m[32m  const handleCopy = () => {[m
+[32m+[m[32m    if (!activeCode) return;[m
+[32m+[m[32m    navigator.clipboard.writeText(activeCode.code).then(() => {[m
+[32m+[m[32m      setCopied(true);[m
+[32m+[m[32m      setTimeout(() => setCopied(false), 3000);[m
+[32m+[m[32m    });[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const formatCountdown = (secs: number) => {[m
+[32m+[m[32m    const m = Math.floor(secs / 60);[m
+[32m+[m[32m    const s = secs % 60;[m
+[32m+[m[32m    return `${m}:${s.toString().padStart(2, '0')}`;[m
+[32m+[m[32m  };[m
+[32m+[m
+   const isConnected = Boolean(status?.connected);[m
+ [m
+   return ([m
+[36m@@ -69,6 +118,16 @@[m [mexport function DevicePairingSection() {[m
+             </div>[m
+           )}[m
+ [m
+[32m+[m[32m          <button[m
+[32m+[m[32m            type="button"[m
+[32m+[m[32m            className={styles.generateButton}[m
+[32m+[m[32m            onClick={() => codeMutation.mutate()}[m
+[32m+[m[32m            disabled={codeMutation.isPending}[m
+[32m+[m[32m            title="Generate pairing code for Windows Desktop App or Chrome Extension"[m
+[32m+[m[32m          >[m
+[32m+[m[32m            {codeMutation.isPending ? 'Generating...' : '🔑 Pair Windows Tracker'}[m
+[32m+[m[32m          </button>[m
+[32m+[m
+           <button[m
+             type="button"[m
+             className={styles.connectButton}[m
+[36m@@ -97,6 +156,26 @@[m [mexport function DevicePairingSection() {[m
+         </div>[m
+       )}[m
+ [m
+[32m+[m[32m      {activeCode && secondsLeft && secondsLeft > 0 && ([m
+[32m+[m[32m        <div className={styles.codeCard}>[m
+[32m+[m[32m          <div className={styles.codeHeader}>[m
+[32m+[m[32m            <span className={styles.codeLabel}>One-Time Pairing Code for Windows App / Extension:</span>[m
+[32m+[m[32m            <span className={styles.countdownBadge}>[m
+[32m+[m[32m              Expires in {formatCountdown(secondsLeft)}[m
+[32m+[m[32m            </span>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <div className={styles.codeBox}>[m
+[32m+[m[32m            <span className={styles.codeValue}>{activeCode.code}</span>[m
+[32m+[m[32m            <button type="button" className={styles.copyBtn} onClick={handleCopy}>[m
+[32m+[m[32m              {copied ? '✓ Copied' : 'Copy Code'}[m
+[32m+[m[32m            </button>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <p className={styles.codeInstructions}>[m
+[32m+[m[32m            Open the <strong>Attention Management Windows Desktop App</strong> or Chrome extension, enter this 8-character code when prompted, and click <strong>Pair Desktop App</strong>.[m
+[32m+[m[32m          </p>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      )}[m
+[32m+[m
+       <p className={styles.leadDescription}>[m
+         Capture is controlled from this website: it starts automatically when you sign in and can be paused or resumed any time with the button in the top-right of the Overview and Activity pages. The background agent records the name of the focused application, session start/end times, duration, idle state, and — unless disabled — window titles. It never records keystrokes, clipboard contents, screenshots, or file contents.[m
+       </p>[m
+[1mdiff --git a/desktop-app/app/pair.html b/desktop-app/app/pair.html[m
+[1mindex 7f70437..65319d0 100644[m
+[1m--- a/desktop-app/app/pair.html[m
+[1m+++ b/desktop-app/app/pair.html[m
+[36m@@ -224,7 +224,8 @@[m
+         });[m
+ [m
+         const data = await resp.json();[m
+[31m-        if (resp.ok && data.data && data.data.token) {[m
+[32m+[m[32m        const token = data.deviceToken || data.token || data.data?.token;[m
+[32m+[m[32m        if (resp.ok && token) {[m
+           showSuccess("Device paired successfully! Launching dashboard...");[m
+           setTimeout(() => {[m
+             window.location.href = "http://localhost:5173";[m
+[1mdiff --git a/desktop-app/app/pairing.py b/desktop-app/app/pairing.py[m
+[1mindex 12afac0..9194f5b 100644[m
+[1m--- a/desktop-app/app/pairing.py[m
+[1m+++ b/desktop-app/app/pairing.py[m
+[36m@@ -101,7 +101,10 @@[m [mdef pair_device(api_base_url: str, pairing_code: str, device_name: Optional[str][m
+     if not device_name:[m
+         device_name = f"{socket.gethostname()} (Windows Desktop)"[m
+ [m
+[31m-    url = f"{api_base_url.rstrip('/')}/api/v1/devices/pair"[m
+[32m+[m[32m    base = api_base_url.rstrip("/")[m
+[32m+[m[32m    if base.endswith("/api/v1"):[m
+[32m+[m[32m        base = base[:-7][m
+[32m+[m[32m    url = f"{base}/api/v1/devices/pair"[m
+     payload = json.dumps({[m
+         "code": code,[m
+         "deviceName": device_name,[m
+[36m@@ -118,7 +121,7 @@[m [mdef pair_device(api_base_url: str, pairing_code: str, device_name: Optional[str][m
+     try:[m
+         with urllib.request.urlopen(req, timeout=10) as resp:[m
+             data = json.loads(resp.read().decode("utf-8"))[m
+[31m-            token = data.get("data", {}).get("token")[m
+[32m+[m[32m            token = data.get("deviceToken") or data.get("token") or data.get("data", {}).get("token")[m
+             if token:[m
+                 store_device_token(token)[m
+                 return True, token[m
+[1mdiff --git a/desktop-app/app/shell.py b/desktop-app/app/shell.py[m
+[1mindex 4dbc251..883badc 100644[m
+[1m--- a/desktop-app/app/shell.py[m
+[1m+++ b/desktop-app/app/shell.py[m
+[36m@@ -16,7 +16,11 @@[m [mfrom typing import Optional[m
+ [m
+ from tracker.config import TrackerConfig, load_config[m
+ from tracker.engine import TrackerEngine[m
+[31m-from app.single_instance import SingleInstance[m
+[32m+[m[32mfrom app.single_instance import ([m
+[32m+[m[32m    SingleInstance,[m
+[32m+[m[32m    signal_existing_instance,[m
+[32m+[m[32m    SHOW_EVENT_NAME,[m
+[32m+[m[32m)[m
+ from app.autostart import set_autostart, is_autostart_enabled[m
+ from app.pairing import ([m
+     get_stored_device_token,[m
+[36m@@ -53,25 +57,27 @@[m [mclass DesktopAppJsApi:[m
+     """JavaScript API bridge exposed to the WebView window."""[m
+ [m
+     def __init__(self, shell: "AttentionDesktopApp") -> None:[m
+[31m-        self.shell = shell[m
+[32m+[m[32m        self._shell = shell[m
+ [m
+     def pair(self, code: str) -> dict:[m
+         """Called by pair.html when user submits an 8-character pairing code."""[m
+[31m-        success, token_or_err = pair_device(self.shell.config.api_base_url, code)[m
+[32m+[m[32m        success, token_or_err = pair_device(self._shell.config.api_base_url, code)[m
+         if success:[m
+[31m-            self.shell.on_device_paired(token_or_err)[m
+[31m-            return {"success": True, "dashboardUrl": self.shell.dashboard_url}[m
+[32m+[m[32m            self._shell.on_device_paired(token_or_err)[m
+[32m+[m[32m            return {"success": True, "dashboardUrl": self._shell.dashboard_url}[m
+         else:[m
+             return {"success": False, "error": token_or_err}[m
+ [m
+     def check_health(self) -> dict:[m
+         """Check status of backend and frontend."""[m
+[31m-        frontend_ok = is_service_reachable(self.shell.dashboard_url)[m
+[31m-        backend_ok = is_service_reachable(f"{self.shell.config.api_base_url.rstrip('/')}/health")[m
+[32m+[m[32m        base = self._shell.config.api_base_url.rstrip("/")[m
+[32m+[m[32m        if base.endswith("/api/v1"):[m
+[32m+[m[32m            base = base[:-7][m
+[32m+[m[32m        backend_ok = is_service_reachable(f"{base}/healthz")[m
+         return {[m
+             "frontendReachable": frontend_ok,[m
+             "backendReachable": backend_ok,[m
+[31m-            "trackingActive": self.shell.engine is not None and not self.shell.engine.is_paused,[m
+[32m+[m[32m            "trackingActive": self._shell.engine is not None and not self._shell.engine.is_paused,[m
+         }[m
+ [m
+ [m
+[36m@@ -96,6 +102,7 @@[m [mclass AttentionDesktopApp:[m
+         self.app_dir = base_dir / "app"[m
+         self.assets_dir = base_dir / "assets"[m
+         self._is_terminating = False[m
+[32m+[m[32m        self.show_event = None[m
+ [m
+         # Load stored token if not in config[m
+         if not self.config.device_token:[m
+[36m@@ -236,6 +243,14 @@[m [mclass AttentionDesktopApp:[m
+             except Exception as e:[m
+                 logger.error(f"Error stopping engine: {e}")[m
+ [m
+[32m+[m[32m        if self.show_event:[m
+[32m+[m[32m            try:[m
+[32m+[m[32m                import ctypes[m
+[32m+[m[32m                ctypes.windll.kernel32.CloseHandle(self.show_event)[m
+[32m+[m[32m            except Exception:[m
+[32m+[m[32m                pass[m
+[32m+[m[32m            self.show_event = None[m
+[32m+[m
+         if self.tray_icon:[m
+             try:[m
+                 self.tray_icon.stop()[m
+[36m@@ -252,20 +267,50 @@[m [mclass AttentionDesktopApp:[m
+ [m
+         sys.exit(0)[m
+ [m
+[32m+[m[32m    def _listen_for_show_event(self) -> None:[m
+[32m+[m[32m        """Background thread waiting for signal from a secondary instance to restore window."""[m
+[32m+[m[32m        if not self.show_event:[m
+[32m+[m[32m            return[m
+[32m+[m[32m        try:[m
+[32m+[m[32m            import ctypes[m
+[32m+[m[32m            kernel32 = ctypes.windll.kernel32[m
+[32m+[m[32m            while not self._is_terminating:[m
+[32m+[m[32m                res = kernel32.WaitForSingleObject(self.show_event, 500)[m
+[32m+[m[32m                if res == 0:  # WAIT_OBJECT_0[m
+[32m+[m[32m                    logger.info("Received show window signal fr

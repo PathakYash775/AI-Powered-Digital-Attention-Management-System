@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { devicesApi } from '../../api/devices';
-import type { ExtensionStatusResponse } from '../../api/types';
+import type { ExtensionStatusResponse, PairingCodeResponse } from '../../api/types';
 import styles from './DevicePairingSection.module.css';
 
 export function DevicePairingSection() {
   const queryClient = useQueryClient();
   const [connectMessage, setConnectMessage] = useState<string | null>(null);
+  const [activeCode, setActiveCode] = useState<PairingCodeResponse | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const {
     data: status,
@@ -33,6 +36,52 @@ export function DevicePairingSection() {
       setTimeout(() => setConnectMessage(null), 5000);
     },
   });
+
+  const codeMutation = useMutation({
+    mutationFn: () => devicesApi.createPairingCode(),
+    onSuccess: (data) => {
+      setActiveCode(data);
+      const remaining = Math.max(
+        0,
+        Math.floor((new Date(data.expiresAt).getTime() - Date.now()) / 1000),
+      );
+      setSecondsLeft(remaining > 0 ? remaining : 600);
+      setCopied(false);
+    },
+    onError: () => {
+      setConnectMessage('Failed to generate pairing code. Please make sure you are logged in.');
+      setTimeout(() => setConnectMessage(null), 5000);
+    },
+  });
+
+  useEffect(() => {
+    if (!secondsLeft || secondsLeft <= 0) return;
+    const timer = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (!prev || prev <= 1) {
+          clearInterval(timer);
+          setActiveCode(null);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [secondsLeft]);
+
+  const handleCopy = () => {
+    if (!activeCode) return;
+    navigator.clipboard.writeText(activeCode.code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    });
+  };
+
+  const formatCountdown = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   const isConnected = Boolean(status?.connected);
 
@@ -71,6 +120,16 @@ export function DevicePairingSection() {
 
           <button
             type="button"
+            className={styles.generateButton}
+            onClick={() => codeMutation.mutate()}
+            disabled={codeMutation.isPending}
+            title="Generate pairing code for Windows Desktop App or Chrome Extension"
+          >
+            {codeMutation.isPending ? 'Generating...' : '🔑 Pair Windows Tracker'}
+          </button>
+
+          <button
+            type="button"
             className={styles.connectButton}
             onClick={() => autoLinkMutation.mutate()}
             disabled={autoLinkMutation.isPending}
@@ -94,6 +153,26 @@ export function DevicePairingSection() {
       {connectMessage && (
         <div className={styles.toastNotice} role="status">
           {connectMessage}
+        </div>
+      )}
+
+      {activeCode && secondsLeft && secondsLeft > 0 && (
+        <div className={styles.codeCard}>
+          <div className={styles.codeHeader}>
+            <span className={styles.codeLabel}>One-Time Pairing Code for Windows App / Extension:</span>
+            <span className={styles.countdownBadge}>
+              Expires in {formatCountdown(secondsLeft)}
+            </span>
+          </div>
+          <div className={styles.codeBox}>
+            <span className={styles.codeValue}>{activeCode.code}</span>
+            <button type="button" className={styles.copyBtn} onClick={handleCopy}>
+              {copied ? '✓ Copied' : 'Copy Code'}
+            </button>
+          </div>
+          <p className={styles.codeInstructions}>
+            Open the <strong>Attention Management Windows Desktop App</strong> or Chrome extension, enter this 8-character code when prompted, and click <strong>Pair Desktop App</strong>.
+          </p>
         </div>
       )}
 

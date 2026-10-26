@@ -78,7 +78,10 @@ if (-not $SkipShortcuts) {
     $shortcut = $wsh.CreateShortcut($desktopLnkPath)
     $shortcut.TargetPath = $exePath
     $shortcut.WorkingDirectory = (Split-Path -Parent $exePath)
-    $builtIcon = Join-Path (Split-Path -Parent $exePath) "assets\app.ico"
+    $builtIcon = Join-Path (Split-Path -Parent $exePath) "_internal\assets\app.ico"
+    if (-not (Test-Path $builtIcon)) {
+        $builtIcon = $iconPath
+    }
     if (Test-Path $builtIcon) {
         $shortcut.IconLocation = "$builtIcon, 0"
     }
