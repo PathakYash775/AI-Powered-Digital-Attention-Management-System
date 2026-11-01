@@ -1,111 +1,116 @@
 # 🎨 Frontend Documentation (React + TypeScript + Vite)
 
-This is the web client application for the **AI-Powered Digital Attention Management System**.
+The web dashboard and client application for the **AI-Powered Digital Attention Management System**.
 
 ---
 
-## 🗂️ Project Structure Diagram
+## 🗂️ Project Structure
 
 ```text
-Project 3/
-├── 📁 backend/                # Everything for Backend, Database & APIs
-│   ├── src/
-│   │   ├── docs/            # Swagger UI Interactive Docs (/docs)
-│   │   ├── modules/         # Auth, Goals, Activity, Focus, Ingest, Stats
-│   │   ├── middleware/      # Security, JWT guards, Zod validation
-│   │   └── server.ts        # Main server entry point
-│   ├── prisma/              # PostgreSQL Schema & Migrations
-│   └── package.json
-│
-├── 📁 frontend/               # Everything for React UI & Visualizations
-│   ├── src/
-│   │   ├── api/             # Typed API client connected to backend
-│   │   ├── app/             # Router & Protected Route Guards
-│   │   ├── components/
-│   │   │   ├── charts/      # 📊 Donut Chart & 24h Timeline Chart
-│   │   │   └── ui/          # Buttons, Modals, Form Fields, Spinners
-│   │   ├── features/
-│   │   │   ├── auth/        # Login & Register Pages
-│   │   │   ├── activity/    # Dashboard (Graphs) & Activity Tables
-│   │   │   ├── goals/       # Goals Management & Progress Trackers
-│   │   │   └── profile/     # Work Hours & Settings
-│   │   └── styles/          # Design tokens & CSS theme
-│   ├── index.html
-│   └── vite.config.ts
-│
-├── 📄 README.md              # Complete Project Overview & Commands
-└── 📄 frontend/README.md     # Detailed Frontend Architecture Guide
+frontend/ (and apps/web/)
+├── src/
+│   ├── api/                   # Strongly-typed Axios API clients (auth, activity, analytics, goals, devices, profile)
+│   ├── app/                   # AppLayout, AppRouter, ProtectedRoute, Providers
+│   ├── components/
+│   │   ├── charts/            # CategoryDonutChart & HourlyTimelineChart
+│   │   └── ui/                # ErrorBoundary (with center Refresh button), Button, Field, Spinner, EmptyState
+│   ├── features/
+│   │   ├── auth/              # LoginPage, RegisterPage, AuthContext
+│   │   ├── activity/          # DashboardPage (executive graphs) & ActivityPage (detailed telemetry tables)
+│   │   ├── analytics/         # AnalyticsPage (ML model simulation, attention scores, recommendations)
+│   │   ├── focus/             # FocusPage & FocusSummaryWidget (timed focus clock sessions)
+│   │   ├── goals/             # GoalsPage (distinct cards + interactive Activity Summary modal), GoalForm
+│   │   ├── profile/           # ProfilePage (2-column layout: Personal Info, Work Schedule, Connected Devices)
+│   │   └── devices/           # DevicePairingSection & pairing code handlers
+│   ├── lib/                   # Safe formatters (formatDuration, formatTime), timezone groups
+│   └── styles/                # CSS design system tokens and themes
+├── index.html                 # App shell with dark background & blank screen recovery watchdog
+└── vite.config.ts             # Vite build configuration & API proxy
 ```
 
 ---
 
-## 🚀 How to Run Frontend
+## 🚀 How to Run the Frontend
 
 ### From Project Root:
 ```powershell
 pnpm dev:web
 ```
 
-### From Inside `frontend/` (`apps/web/`):
+### From Inside `frontend/` (or `apps/web/`):
 ```powershell
-cd frontend
 npm run dev
 ```
 
 ### Open in Browser:
 👉 **[http://localhost:5173](http://localhost:5173)**
 
-*(Note: Ensure your backend server is running so that the `/api` proxy forwards requests to PostgreSQL seamlessly).*
+*(Note: Ensure your backend server is running on port `8000` so that requests to `/api` proxy seamlessly).*
 
 ---
 
 ## 📋 Features & Pages Available
 
 ### 1. 🔑 Authentication (`/login` & `/register`)
-* **Login Form**: Email & password authentication with JWT access tokens stored in memory and refresh tokens in HTTP-only cookies.
-* **Register Form**: Create user accounts with password strength validation.
-* **Protected Routes**: Automatic redirection to `/login` if unauthenticated.
-* **Test Credentials**:
-  * **Email**: `sajal_demo@example.com`
-  * **Password**: `Password123!`
+* **Secure Auth Flow**: JWT access tokens in memory and refresh tokens in HTTP-only cookies.
+* **Auto-Session Restore**: Automatically validates active sessions on page refresh.
 
-### 2. 📊 Executive Dashboard (`/`) — *Graphs & Visualizations*
-* **Metrics Summary Cards**:
-  * Total Screen Time (Active vs. Idle break duration).
-  * Context Switches Counter (Number of application changes).
-  * Notification Interruption Counter.
-* **Visual Graphs**:
+### 2. 📊 Executive Dashboard (`/` & `/dashboard`)
+* **Live KPI Cards**: Total Monitored Time, Active vs. Idle Time, Context Switches, and Notification Interruptions.
+* **Visual Charts**:
   * 🍩 **Category Donut Chart**: Breakdown into *Productive Work*, *Communication*, *Entertainment*, *Social*, and *Other*.
-  * 📈 **Top 5 Sites**: Ranked horizontal bars for domains (GitHub, Stack Overflow, YouTube, Figma).
-* **Date Navigator**: Inspect historical attention analytics by date.
+  * 📈 **Top Sites & Apps Ranking**: Real-time ranked list of tracked domains.
+* **Date Navigator**: Inspect attention analytics for today or any historical date.
 
-### 3. 📑 Activity & Distraction Details (`/activity`) — *Tables*
-* **Activity Sessions Table**: Domain, category tag, duration, timestamps, and idle flags.
-* **Context Switches Table**: Real-time log showing rapid multitasking (e.g., `VS Code` ➔ `Slack` ➔ `Chrome`).
-* **Notification Feed Table**: Notifications captured by app name and time.
-* **Date Range Filters**: Filter records by custom `From` and `To` dates.
+### 3. 📑 Activity Tracking (`/activity`)
+* **Telemetry Data Tables**: Real-time activity sessions, domain categories, durations, and idle states.
+* **Context Switches Log**: Multi-tasking velocity feed (e.g., `VS Code` ➔ `Slack` ➔ `Chrome`).
+* **Date Filters**: Custom `From` and `To` date range queries.
 
-### 4. 🎯 Goals Management (`/goals`)
-* **Create New Goals**:
-  * Focus Minutes Goal (e.g., target 240 mins deep work).
-  * Maximum Screen Time (e.g., max 480 mins).
-  * Context Switch Limit (e.g., under 35 switches).
-* **Live Progress Bars**: Visual progress indicators showing progress against goals.
-* **Edit & Delete**: Full modal-driven CRUD operations.
+### 4. 🤖 AI Models & Analytics (`/analytics`)
+* **Attention Score Meter**: Live calculated immersion score (0-100) based on active vs. distracting tasks.
+* **Interactive ML Simulator**: Simulate app usage patterns and evaluate predicted attention penalties.
+* **Focus Recommendations**: Actionable behavioral insights to reduce fragmentation.
 
-### 5. ⚙️ Profile Settings (`/profile`)
-* **Work Schedule**: Set daily work start and end hours (e.g., `09:00` to `18:00`).
-* **Timezone & Occupation**: Choose between *Student* or *Professional*.
+### 5. ⏱️ Focus Sessions (`/focus`)
+* **Timer Clock Widget**: Start dedicated 25m / 50m / custom focus sprints with audio/visual status indicators.
+* **Interruption Tracking**: Automatically logs distractions during an active focus block.
+
+### 6. 🎯 Goals & Habits (`/goals`)
+* **Visually Distinct Goal Cards**:
+  * Dedicated color themes, custom icons, and category badges (`🎓 Education`, `⚡ Deep Work`, `🛡️ Digital Wellbeing`, `🔀 Context Flow`).
+  * Live completion progress bars (e.g., `8m of 60m • 13% completed`).
+  * Live metric tags: `⚡ 100 Focus Score`, `3 Unique Domains`, `9 Switches`.
+* **Interactive Activity Summary & Attention Scores Modal**:
+  * **Period Filters**: Seamless toggle between `Daily`, `Weekly`, and `Monthly` windows.
+  * **6-Card Activity Summary Grid**: Total Monitored, Total Focused, Idle Time, Tab Switches, Websites Visited, Distraction Events.
+  * **Attention Scores & Progress Meters**: Focus Score (`100/100`), Productivity (`69/100`), Stability (`15/100`), Distraction Frequency, and Context-Switching Rate.
+  * **Interactive Controls**: `Recalculate` with spin animation and `History` streak drawer.
+
+### 7. ⚙️ Profile Settings & Devices (`/profile`)
+* **Two-Column Modern Layout**:
+  * **Personal Information Card**: Vibrant avatar with initials (`YP`), photo upload (`JPG, PNG, GIF up to 2MB`), Display Name input, Occupation Type (`Student` / `Professional`), and Timezone dropdown with auto-detection.
+  * **Work Schedule Card**: `Work Start (HH:mm)` and `Work End (HH:mm)` inputs with clock indicators.
+  * **Connected Devices Card**: Real-time connection indicators for **Chrome Extension** and **Windows Desktop Tracker**.
+  * **Device Management Actions**:
+    * `Pair Windows Tracker`: Generates an 8-character pairing code with a 10-minute countdown timer and copy button.
+    * `Re-sync Connection`: Triggers instant extension & tracker auto-link.
+    * `Refresh`: Re-checks live heartbeat status.
+  * **Action Buttons**: `Save Changes` and `Log Out`.
+
+### 8. 🔄 Blank Screen Recovery & Screen Refresh
+* **Centered Emergency Recovery Screen**: If an uncaught error occurs, an emergency centered card automatically displays with a prominent **"🔄 Refresh Screen"** button.
+* **Top-Bar Refresh Button**: Permanent header button in the canvas top bar next to your username and Sign Out.
+* **Global Keyboard Shortcuts**: Press **`F5`** or **`Ctrl + R`** anywhere in the desktop app or browser to reload.
 
 ---
 
 ## 🧪 Testing & Production Build
 
-* **Run Frontend Tests**:
-  ```powershell
-  pnpm test:web
-  ```
-* **Build Production Bundle**:
-  ```powershell
-  pnpm build:web
-  ```
+```powershell
+# Run component & integration tests
+pnpm test:web
+
+# Production build & type-checking
+pnpm build:web
+```

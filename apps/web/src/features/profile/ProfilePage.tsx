@@ -7,7 +7,7 @@ import { devicesApi } from '../../api/devices';
 import { useAuth } from '../auth/AuthContext';
 import { profileSchema, type ProfileFormValues } from './schemas';
 import { Spinner } from '../../components/ui/Spinner';
-import { getTimezoneGroups } from '../../lib/timezones';
+import { getTimezoneGroups, getBrowserTimezone } from '../../lib/timezones';
 import type { ExtensionStatusResponse, DeviceItem, PairingCodeResponse } from '../../api/types';
 import styles from './ProfilePage.module.css';
 
@@ -127,6 +127,7 @@ export function ProfilePage() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -159,7 +160,7 @@ export function ProfilePage() {
     onSuccess: (updated) => {
       queryClient.setQueryData(['profile'], updated);
       reset(updated);
-      setSuccessMessage('Profile settings updated successfully!');
+      setSuccessMessage('Profile updated successfully.');
       setErrorMessage(null);
       setTimeout(() => setSuccessMessage(null), 4000);
     },
@@ -434,14 +435,23 @@ export function ProfilePage() {
 
               {/* Form Input: Timezone */}
               <div className={styles.fieldCol} style={{ marginTop: '0.5rem' }}>
-                <label htmlFor="profile-timezone" className={styles.fieldLabel}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="2" y1="12" x2="22" y2="12" />
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                  </svg>
-                  <span>Timezone</span>
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                  <label htmlFor="profile-timezone" className={styles.fieldLabel} style={{ marginBottom: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="2" y1="12" x2="22" y2="12" />
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    <span>Timezone</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setValue('timezone', getBrowserTimezone(), { shouldDirty: true })}
+                    style={{ fontSize: '0.78rem', background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0 }}
+                  >
+                    📍 Detect Local Timezone
+                  </button>
+                </div>
                 <select
                   id="profile-timezone"
                   className={styles.inputBox}
