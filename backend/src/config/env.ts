@@ -3,7 +3,7 @@ import { z } from 'zod';
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    PORT: z.coerce.number().int().positive().default(3000),
+    PORT: z.coerce.number().int().positive().default(8000),
     DATABASE_URL: z.string().url(),
     JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters long'),
     REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
@@ -11,7 +11,7 @@ const envSchema = z
       .string()
       .default('http://localhost:5173')
       .transform((val) => val.split(',').map((origin) => origin.trim()).filter(Boolean)),
-    AI_SERVICE_URL: z.string().url().default('http://127.0.0.1:8000'),
+    AI_SERVICE_URL: z.string().url().default('http://127.0.0.1:8001'),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   });
 

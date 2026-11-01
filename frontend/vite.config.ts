@@ -26,6 +26,13 @@ function mswWorkerPlugin(): Plugin {
 export default defineConfig({
   plugins: [react(), mswWorkerPlugin()],
   server: {
+    host: '0.0.0.0',
+    port: 5173,
+
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',
@@ -33,6 +40,7 @@ export default defineConfig({
       },
     },
   },
+
   define: {
     'import.meta.env.VITE_USE_MOCKS': JSON.stringify(
       process.env.VITE_USE_MOCKS ?? 'false',

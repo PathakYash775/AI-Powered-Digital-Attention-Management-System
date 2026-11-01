@@ -25,6 +25,9 @@ const GoalsPage = lazy(() =>
 const ProfilePage = lazy(() =>
   import('../features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })),
 );
+const AnalyticsPage = lazy(() =>
+  import('../features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
+);
 
 export function AppRouter() {
   return (
@@ -42,7 +45,9 @@ export function AppRouter() {
             }
           >
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activity" element={<ActivityPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/focus" element={<FocusPage />} />
             <Route path="/goals" element={<GoalsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

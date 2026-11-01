@@ -5,11 +5,12 @@ interface HourlyTimelineChartProps {
   patterns: HourlyUsageItem[];
 }
 
-export function HourlyTimelineChart({ patterns }: HourlyTimelineChartProps) {
-  const activeHours = patterns.filter((p) => p.hour >= 8 && p.hour <= 19);
-  const displayHours = activeHours.length > 0 ? activeHours : patterns.slice(0, 14);
+export function HourlyTimelineChart({ patterns = [] }: HourlyTimelineChartProps) {
+  const safePatterns = Array.isArray(patterns) ? patterns : [];
+  const activeHours = safePatterns.filter((p) => p && typeof p.hour === 'number' && p.hour >= 8 && p.hour <= 19);
+  const displayHours = activeHours.length > 0 ? activeHours : safePatterns.slice(0, 14);
 
-  const maxActiveSec = Math.max(...displayHours.map((p) => p.activeSec), 3600);
+  const maxActiveSec = Math.max(...displayHours.map((p) => Number(p?.activeSec) || 0), 3600);
 
   return (
     <div className={styles.wrapper}>

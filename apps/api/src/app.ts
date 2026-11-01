@@ -16,6 +16,7 @@ import { devicesRouter } from './modules/devices/devices.routes.js';
 import { ingestRouter } from './modules/ingest/ingest.routes.js';
 import { activityRouter } from './modules/activity/activity.routes.js';
 import { statsRouter } from './modules/stats/stats.routes.js';
+import { analyticsRouter } from './modules/analytics/analytics.routes.js';
 import { focusRouter } from './modules/focus/focus.routes.js';
 
 export function createApp(): Express {
@@ -104,8 +105,8 @@ export function createApp(): Express {
   apiRouter.use('/ingest', ingestRouter);
   apiRouter.use('/activity', activityRouter);
   apiRouter.use('/stats', statsRouter);
+  apiRouter.use('/analytics', analyticsRouter);
   apiRouter.use('/focus-sessions', focusRouter);
-
 
   app.use('/api/v1', apiRouter);
 
@@ -252,6 +253,7 @@ export function createApp(): Express {
       <tr><td>Goals</td><td>GET, POST, PATCH, DELETE</td><td>/api/v1/goals</td><td>User focus goals</td></tr>
       <tr><td>Focus</td><td>GET, POST, PATCH</td><td>/api/v1/focus-sessions</td><td>Focus sessions tracking</td></tr>
       <tr><td>Stats</td><td>GET</td><td>/api/v1/stats/today</td><td>Daily summary metrics</td></tr>
+      <tr><td>Analytics</td><td>GET</td><td>/api/v1/analytics/*</td><td>Cognitive attention score, distraction detection & predictions</td></tr>
       <tr><td>Devices</td><td>GET, POST, DELETE</td><td>/api/v1/devices</td><td>Manage paired devices</td></tr>
       <tr><td>Ingest</td><td>POST</td><td>/api/v1/ingest/*</td><td>Ingest telemetry (activity, switches, notifs)</td></tr>
     </tbody>

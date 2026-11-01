@@ -307,6 +307,104 @@ export const openApiSpec = {
         responses: { 200: { description: 'Range statistics' } },
       },
     },
+    '/api/v1/analytics/daily': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Daily',
+        description: 'Get daily attention breakdown, focused vs distracted minutes, and category distributions.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'date', in: 'query', schema: { type: 'string', format: 'date' } }],
+        responses: { 200: { description: 'Daily analytics metrics' } },
+      },
+    },
+    '/api/v1/analytics/focus-score': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Focus Score',
+        description: 'Get computed attention focus score (0-100), rating, and component metrics.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'date', in: 'query', schema: { type: 'string', format: 'date' } }],
+        responses: { 200: { description: 'Focus score metrics' } },
+      },
+    },
+    '/api/v1/analytics/distractions': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Distractions',
+        description: 'Get detected distraction sessions, high-distraction sources, and rates.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'date', in: 'query', schema: { type: 'string', format: 'date' } }],
+        responses: { 200: { description: 'Distraction analytics' } },
+      },
+    },
+    '/api/v1/analytics/predictions': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Predictions',
+        description: 'Run real-time machine learning prediction on current behavioral features.',
+        security: [{ BearerAuth: [] }],
+        responses: { 200: { description: 'Behavioral ML predictions' } },
+      },
+    },
+    '/api/v1/analytics/simulate': {
+      post: {
+        tags: ['analytics'],
+        summary: 'Simulate Prediction',
+        description: 'Run interactive ML prediction on custom behavioral features.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  appName: { type: 'string', example: 'Visual Studio Code' },
+                  category: { type: 'string', enum: ['productive', 'social', 'communication', 'entertainment', 'other'], example: 'productive' },
+                  hoursUsed: { type: 'number', example: 2.5 },
+                  dayUsed: { type: 'string', example: 'Wednesday' },
+                  numberEvents: { type: 'integer', example: 120 },
+                  numberInteractions: { type: 'integer', example: 2400 },
+                  switches: { type: 'integer', example: 6 },
+                  eventSpan: { type: 'number', example: 150 },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: 'Interactive ML prediction output' } },
+      },
+    },
+    '/api/v1/analytics/insights': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Insights',
+        description: 'Get automated cognitive attention insights and recommendations.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'date', in: 'query', schema: { type: 'string', format: 'date' } }],
+        responses: { 200: { description: 'Attention insights' } },
+      },
+    },
+    '/api/v1/analytics/summary': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Summary',
+        description: 'Get executive summary uniting focus score, screen time, and distraction analysis.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'date', in: 'query', schema: { type: 'string', format: 'date' } }],
+        responses: { 200: { description: 'Analytics executive summary' } },
+      },
+    },
+    '/api/v1/analytics/weekly-summary': {
+      get: {
+        tags: ['analytics'],
+        summary: 'Weekly Focus Summary',
+        description: 'Get weekly Monday-Sunday daily focus scores, weekly average, screen time, and completed sessions.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'date', in: 'query', schema: { type: 'string', format: 'date' } }],
+        responses: { 200: { description: 'Weekly focus summary with daily breakdown' } },
+      },
+    },
     '/api/v1/goals': {
       post: {
         tags: ['goals'],

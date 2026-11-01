@@ -11,7 +11,7 @@ const envSchema = z
       .string()
       .default('http://localhost:5173')
       .transform((val) => val.split(',').map((origin) => origin.trim()).filter(Boolean)),
-    AI_SERVICE_URL: z.string().url().default('http://127.0.0.1:8000'),
+    AI_SERVICE_URL: z.string().url().default('http://127.0.0.1:8001'),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   });
 

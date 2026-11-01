@@ -254,6 +254,28 @@
   color: var(--color-primary);
 }
 
+.topRefreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #38bdf8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topRefreshBtn:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
 .contentWrapper {
   flex: 1;
   padding: 0.5rem 2rem 3rem 2rem;

@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -75,6 +76,26 @@ export function AppLayout() {
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
               <span>Activity Tracking</span>
+            </NavLink>
+
+            {/* 3. AI Models & Analytics */}
+            <NavLink
+              to="/analytics"
+              className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+            >
+              <svg
+                className={styles.navIcon}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22" />
+                <path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                <path d="M8 8a6 6 0 0 0-4 6c0 3 2 5.5 5 5.92" />
+                <path d="M16 8a6 6 0 0 1 4 6c0 3-2 5.5-5 5.92" />
+              </svg>
+              <span>AI Models &amp; Analytics</span>
             </NavLink>
 
             {/* 3. Focus Sessions with Timer Clock */}
@@ -181,6 +202,17 @@ export function AppLayout() {
           </div>
           <button
             type="button"
+            className={styles.topRefreshBtn}
+            onClick={() => window.location.reload()}
+            title="Refresh screen (F5 / Ctrl+R)"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Refresh</span>
+          </button>
+          <button
+            type="button"
             className={styles.topSignOutBtn}
             onClick={() => logout()}
           >
@@ -195,7 +227,9 @@ export function AppLayout() {
 
         {/* Scrollable Page Content */}
         <main className={styles.contentWrapper}>
-          <Outlet />
+          <ErrorBoundary fallbackTitle="View Rendering Error">
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

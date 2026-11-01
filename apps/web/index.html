@@ -10,9 +10,151 @@
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <style>
+      html, body {
+        background-color: #0b1120;
+        color: #f8fafc;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      #blank-recovery-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #0b1120;
+        z-index: 999999;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      .recovery-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 40px 32px;
+        max-width: 460px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        box-sizing: border-box;
+      }
+      .recovery-icon {
+        font-size: 44px;
+        margin-bottom: 16px;
+        display: inline-block;
+        animation: spinSlow 8s linear infinite;
+      }
+      @keyframes spinSlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .recovery-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin: 0 0 10px 0;
+      }
+      .recovery-text {
+        font-size: 14px;
+        color: #94a3b8;
+        line-height: 1.6;
+        margin: 0 0 24px 0;
+      }
+      .recovery-btn {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #ffffff;
+        border: none;
+        padding: 13px 26px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      }
+      .recovery-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      }
+      .recovery-btn:active {
+        transform: translateY(1px);
+      }
+    </style>
   </head>
   <body>
+    <!-- Blank Screen Watchdog Center Recovery Overlay -->
+    <div id="blank-recovery-overlay" role="alert" aria-live="assertive">
+      <div class="recovery-card">
+        <div class="recovery-icon" aria-hidden="true">⚡</div>
+        <h2 class="recovery-title">Attention Management System</h2>
+        <p class="recovery-text">
+          If your screen went blank or disconnected, click the button below to instantly refresh and restore your view.
+        </p>
+        <button
+          type="button"
+          class="recovery-btn"
+          id="center-recovery-refresh-btn"
+          onclick="window.location.reload()"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span>Refresh Screen</span>
+        </button>
+      </div>
+    </div>
+
     <div id="root"></div>
+
+    <script>
+      // Global shortcut: F5 or Ctrl+R anywhere in window triggers immediate refresh
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'F5' || (e.ctrlKey && e.key.toLowerCase() === 'r')) {
+          e.preventDefault();
+          window.location.reload();
+        }
+      });
+
+      function showBlankRecovery() {
+        const overlay = document.getElementById('blank-recovery-overlay');
+        if (overlay) overlay.style.display = 'flex';
+      }
+
+      // If an uncaught window error occurs and #root becomes empty
+      window.addEventListener('error', function(e) {
+        console.error('[Watchdog] Window Error:', e.error || e.message);
+        const root = document.getElementById('root');
+        if (!root || root.children.length === 0) {
+          showBlankRecovery();
+        }
+      });
+
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('[Watchdog] Unhandled Rejection:', e.reason);
+        const root = document.getElementById('root');
+        if (!root || root.children.length === 0) {
+          showBlankRecovery();
+        }
+      });
+
+      // Watchdog: If after 3.5 seconds the root container is still completely empty
+      setTimeout(function() {
+        const root = document.getElementById('root');
+        if (root && root.children.length === 0) {
+          showBlankRecovery();
+        }
+      }, 3500);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

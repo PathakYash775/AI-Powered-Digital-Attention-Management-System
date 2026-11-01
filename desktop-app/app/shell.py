@@ -74,11 +74,27 @@ class DesktopAppJsApi:
         if base.endswith("/api/v1"):
             base = base[:-7]
         backend_ok = is_service_reachable(f"{base}/healthz")
+        frontend_ok = is_service_reachable(self._shell.dashboard_url)
         return {
             "frontendReachable": frontend_ok,
             "backendReachable": backend_ok,
             "trackingActive": self._shell.engine is not None and not self._shell.engine.is_paused,
         }
+
+    def unpair(self) -> dict:
+        """Clear device token from memory and disk, pause tracking."""
+        self._shell.config.device_token = None
+        from app.pairing import TOKEN_FILE
+        try:
+            if TOKEN_FILE.exists():
+                TOKEN_FILE.unlink()
+            import keyring
+            keyring.delete_password("AttentionTracker", "device_token")
+        except Exception:
+            pass
+        if self._shell.engine:
+            self._shell.engine.pause()
+        return {"success": True}
 
 
 class AttentionDesktopApp:
@@ -192,8 +208,25 @@ class AttentionDesktopApp:
         def is_autostart_checked(item):
             return is_autostart_enabled()
 
+        def on_open_pair(icon, item):
+            if self.window:
+                self.window.load_url((self.app_dir / "pair.html").as_uri())
+                self.window.restore()
+                self.window.show()
+
+        def on_refresh_screen(icon, item):
+            if self.window:
+                try:
+                    self.window.restore()
+                    self.window.show()
+                    self.window.evaluate_js("window.location.reload();")
+                except Exception as e:
+                    logger.debug(f"Error reloading window via tray: {e}")
+
         menu = pystray.Menu(
             pystray.MenuItem("Show Dashboard", on_show_dashboard, default=True),
+            pystray.MenuItem("Refresh Screen", on_refresh_screen),
+            pystray.MenuItem("Pair / Connect Device...", on_open_pair),
             pystray.MenuItem(get_pause_label, on_toggle_pause),
             pystray.MenuItem("Settings", on_open_settings),
             pystray.Menu.SEPARATOR,
@@ -208,6 +241,9 @@ class AttentionDesktopApp:
 
     def get_initial_url(self) -> str:
         """Determine initial URL based on reachability and pairing state."""
+        if "--pair" in sys.argv:
+            return (self.app_dir / "pair.html").as_uri()
+
         # 1. Check if frontend dashboard is reachable
         dashboard_reachable = is_service_reachable(self.dashboard_url)
         if not dashboard_reachable:
@@ -336,7 +372,7 @@ class AttentionDesktopApp:
             self.window.events.closing += self.on_window_closing
 
             logger.info(f"Opening app window with URL: {initial_url}")
-            webview.start(storage_path=str(profile_dir), debug=False)
+            webview.start(storage_path=str(profile_dir), debug=True)
 
         except Exception as e:
             logger.error(f"Failed to run webview: {e}")

@@ -1,5 +1,15 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { activityApi } from '../../api/activity';
+import { analyticsApi } from '../../api/analytics';
+
+export function useWeeklyFocusSummary(date?: string) {
+  return useQuery({
+    queryKey: ['analytics', 'weekly-summary', date],
+    queryFn: () => analyticsApi.getWeeklySummary(date),
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
+  });
+}
 
 export function useActivitySummary(date: string) {
   return useQuery({
@@ -9,6 +19,7 @@ export function useActivitySummary(date: string) {
     refetchOnWindowFocus: true,
   });
 }
+
 
 export function useActivityReport(date: string) {
   return useQuery({

@@ -277,6 +277,21 @@ export const activityService = {
       }
     }
 
+    const totalFromActivities = Object.values(categoryBreakdown).reduce((a, b) => a + b, 0);
+    if (totalFromActivities === 0 && summary.byCategory) {
+      if (Array.isArray(summary.byCategory)) {
+        for (const item of summary.byCategory as Array<{ category: string; durationSec: number }>) {
+          const cat = String(item.category).toLowerCase();
+          categoryBreakdown[cat] = (categoryBreakdown[cat] ?? 0) + item.durationSec;
+        }
+      } else if (typeof summary.byCategory === 'object') {
+        for (const [k, v] of Object.entries(summary.byCategory)) {
+          const cat = k.toLowerCase();
+          categoryBreakdown[cat] = (categoryBreakdown[cat] ?? 0) + (Number(v) || 0);
+        }
+      }
+    }
+
     return {
       summary,
       hourlyPatterns: patterns.map((p: any) => ({

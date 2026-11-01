@@ -44,16 +44,39 @@ const CATEGORY_CONFIG: Record<
 };
 
 export function CategoryDonutChart({ categories, totalSec }: CategoryDonutChartProps) {
-  const safeTotal = totalSec > 0 ? totalSec : 1;
+  const safeTotal = typeof totalSec === 'number' && !isNaN(totalSec) && totalSec > 0 ? totalSec : 1;
 
-  const entries = Object.entries(categories)
-    .filter(([, sec]) => sec > 0)
+  // Normalize categories if passed as an array or object
+  const normalizedCategories: Record<string, number> = {
+    productive: 0,
+    communication: 0,
+    entertainment: 0,
+    social: 0,
+    other: 0,
+  };
+
+  if (Array.isArray(categories)) {
+    for (const item of categories as Array<{ category?: string; durationSec?: number }>) {
+      if (item && item.category) {
+        const cat = item.category.toLowerCase();
+        normalizedCategories[cat] = (normalizedCategories[cat] || 0) + (Number(item.durationSec) || 0);
+      }
+    }
+  } else if (categories && typeof categories === 'object') {
+    for (const [k, v] of Object.entries(categories)) {
+      const cat = k.toLowerCase();
+      normalizedCategories[cat] = (normalizedCategories[cat] || 0) + (Number(v) || 0);
+    }
+  }
+
+  const entries = Object.entries(normalizedCategories)
+    .filter(([, sec]) => typeof sec === 'number' && !isNaN(sec) && sec > 0)
     .map(([key, sec]) => ({
       key,
       sec,
       percent: Math.round((sec / safeTotal) * 100),
       config: CATEGORY_CONFIG[key] ?? {
-        label: key,
+        label: key.charAt(0).toUpperCase() + key.slice(1),
         color: '#94a3b8',
         gradient: '#94a3b8',
       },
@@ -64,8 +87,8 @@ export function CategoryDonutChart({ categories, totalSec }: CategoryDonutChartP
 
   let accumulatedOffset = 0;
   const arcs = entries.map((entry) => {
-    const strokeLength = (entry.sec / safeTotal) * circumference;
-    const strokeDasharray = `${strokeLength} ${circumference - strokeLength}`;
+    const strokeLength = Math.min(circumference, (entry.sec / safeTotal) * circumference);
+    const strokeDasharray = `${strokeLength} ${Math.max(0, circumference - strokeLength)}`;
     const strokeDashoffset = -accumulatedOffset;
     accumulatedOffset += strokeLength;
     return {
@@ -75,8 +98,8 @@ export function CategoryDonutChart({ categories, totalSec }: CategoryDonutChartP
     };
   });
 
-  const productiveSec = categories.productive ?? 0;
-  const productivePercent = Math.round((productiveSec / safeTotal) * 100);
+  const productiveSec = normalizedCategories.productive ?? 0;
+  const productivePercent = Math.min(100, Math.round((productiveSec / safeTotal) * 100));
 
   return (
     <div className={styles.wrapper}>
