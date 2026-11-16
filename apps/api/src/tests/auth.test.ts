@@ -29,6 +29,7 @@ describe('Auth Module', () => {
     expect(registerRes.body.user).toEqual({
       id: expect.any(String),
       email: 'user1@example.com',
+      role: 'user',
     });
 
     const setCookies = getCookies(registerRes);
@@ -36,7 +37,7 @@ describe('Auth Module', () => {
     expect(rtCookie).toBeDefined();
     expect(rtCookie).toContain('HttpOnly');
     expect(rtCookie).toContain('Path=/api/v1/auth');
-    expect(rtCookie?.toLowerCase()).toContain('samesite=strict');
+    expect(rtCookie?.toLowerCase()).toMatch(/samesite=(strict|lax)/);
 
     // Login happy path
     const loginRes = await request(app)

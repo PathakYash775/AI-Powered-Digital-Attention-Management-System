@@ -24,26 +24,26 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background-color: #eff6ff;
-  border: 1px solid #dbeafe;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563eb;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 0;
   line-height: 1.2;
 }
 
 .subtitle {
   font-size: 0.88rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   margin: 4px 0 0 0;
 }
 
@@ -51,20 +51,20 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
   border: none;
   border-radius: 8px;
   padding: 10px 18px;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 4px var(--color-primary-glow);
   transition: all 0.15s ease;
 }
 
 .addGoalBtn:hover:not(:disabled) {
-  background-color: #1d4ed8;
+  background-color: var(--color-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -82,14 +82,14 @@
 }
 
 .kpiCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .kpiIconBox {
@@ -111,7 +111,7 @@
 .kpiLabel {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -119,23 +119,23 @@
 .kpiValue {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .kpiSub {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: var(--color-text-dim);
 }
 
 /* Limit & Error Alerts */
 .limitWarning {
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
-  background-color: #fffbeb;
-  border: 1px solid #fef3c7;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   font-size: 0.85rem;
-  color: #b45309;
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -144,30 +144,30 @@
 .errorAlert {
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
+  background-color: var(--color-danger-surface);
+  border: 1px solid var(--color-danger);
   border-radius: 10px;
-  color: #b91c1c;
+  color: var(--color-danger);
   font-size: 0.85rem;
 }
 
 .formCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.75rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .sectionTitle {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 0 0 1rem 0;
 }
 
-/* Distinct Goals Grid - Make look different not same */
+/* Distinct Goals Grid */
 .goalsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -175,11 +175,11 @@
 }
 
 .goalCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -191,58 +191,27 @@
 
 .goalCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 /* Unique theme variants for each goal type */
-.goalThemeEducation {
-  border-color: #bae6fd;
-  background: linear-gradient(180deg, rgba(240, 249, 255, 0.5) 0%, #ffffff 40%);
-}
-.goalThemeEducation .cardCategoryPill {
-  background-color: #eff6ff;
-  border-color: #bfdbfe;
-  color: #2563eb;
-}
-
-.goalThemeFocus {
-  border-color: #bbf7d0;
-  background: linear-gradient(180deg, rgba(240, 253, 244, 0.5) 0%, #ffffff 40%);
-}
-.goalThemeFocus .cardCategoryPill {
-  background-color: #f0fdf4;
-  border-color: #bbf7d0;
-  color: #16a34a;
-}
-
-.goalThemeScreen {
-  border-color: #fde68a;
-  background: linear-gradient(180deg, rgba(254, 252, 232, 0.5) 0%, #ffffff 40%);
-}
-.goalThemeScreen .cardCategoryPill {
-  background-color: #fffbeb;
-  border-color: #fef3c7;
-  color: #d97706;
-}
-
-.goalThemeSwitches {
-  border-color: #ddd6fe;
-  background: linear-gradient(180deg, rgba(245, 243, 255, 0.5) 0%, #ffffff 40%);
-}
-.goalThemeSwitches .cardCategoryPill {
-  background-color: #f5f3ff;
-  border-color: #ddd6fe;
-  color: #7c3aed;
-}
-
+.goalThemeEducation,
+.goalThemeFocus,
+.goalThemeScreen,
+.goalThemeSwitches,
 .goalThemeCustom {
-  border-color: #cbd5e1;
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.5) 0%, #ffffff 40%);
+  border-color: var(--color-border);
+  background-color: var(--color-surface);
 }
+
+.goalThemeEducation .cardCategoryPill,
+.goalThemeFocus .cardCategoryPill,
+.goalThemeScreen .cardCategoryPill,
+.goalThemeSwitches .cardCategoryPill,
 .goalThemeCustom .cardCategoryPill {
-  background-color: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #475569;
+  background-color: var(--color-surface-subtle);
+  border-color: var(--color-border);
+  color: var(--color-primary);
 }
 
 /* Card Header elements */
@@ -260,7 +229,7 @@
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 9999px;
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -268,9 +237,9 @@
 .cardPeriodBadge {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #64748b;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   padding: 2px 8px;
   border-radius: 6px;
   text-transform: capitalize;
@@ -285,13 +254,13 @@
 .cardTitle {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 0;
 }
 
 .cardTarget {
   font-size: 0.82rem;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 /* Card Progress Meter */
@@ -308,17 +277,17 @@
   justify-content: space-between;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .progressPercentage {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .progressBarTrack {
   height: 7px;
-  background-color: #e2e8f0;
+  background-color: var(--chart-track);
   border-radius: 9999px;
   overflow: hidden;
 }
@@ -345,9 +314,9 @@
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 6px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #475569;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
 }
 
 /* Card Action Buttons */
@@ -356,7 +325,7 @@
   align-items: center;
   gap: 0.5rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .viewSummaryBtn {
@@ -365,9 +334,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1d4ed8;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
   border-radius: 8px;
   padding: 7px 12px;
   font-size: 0.8rem;
@@ -377,49 +346,49 @@
 }
 
 .viewSummaryBtn:hover {
-  background-color: #dbeafe;
-  border-color: #93c5fd;
-  color: #1e40af;
+  background-color: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .cardIconBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 7px 10px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .cardIconBtn:hover {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text);
 }
 
 .deleteIconBtn {
-  color: #ef4444;
-  border-color: #fecaca;
-  background-color: #fef2f2;
+  color: var(--color-danger);
+  border-color: var(--color-border);
+  background-color: var(--color-danger-surface);
 }
 
 .deleteIconBtn:hover {
-  background-color: #fee2e2;
-  color: #dc2626;
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger-hover);
 }
 
 /* ======================================================== */
-/* GOAL DETAIL / SUMMARY MODAL (MATCHING USER SCREENSHOT)   */
+/* GOAL DETAIL / SUMMARY MODAL                              */
 /* ======================================================== */
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.55);
+  background-color: rgba(17, 15, 14, 0.75);
   backdrop-filter: blur(8px);
   z-index: 999;
   display: flex;
@@ -435,14 +404,14 @@
 }
 
 .modalCard {
-  background-color: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
   max-width: 680px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card);
   padding: 1.75rem;
   display: flex;
   flex-direction: column;
@@ -467,9 +436,9 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #2563eb;
+  background-color: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
   font-size: 0.78rem;
   font-weight: 600;
   padding: 3px 12px;
@@ -480,9 +449,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,9 +460,9 @@
 }
 
 .modalCloseBtn:hover {
-  background-color: #fee2e2;
-  border-color: #fecaca;
-  color: #dc2626;
+  background-color: var(--color-danger-surface);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .modalTitleRow {
@@ -504,14 +473,14 @@
 }
 
 .modalTargetIcon {
-  color: #2563eb;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
 .modalGoalTitle {
   font-size: 1.45rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 0;
   line-height: 1.25;
 }
@@ -527,7 +496,8 @@
 
 .periodPillGroup {
   display: inline-flex;
-  background-color: #f1f5f9;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -540,19 +510,18 @@
   padding: 5px 14px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .periodPillBtn:hover {
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .periodPillBtnActive {
-  background-color: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .modalActionsRight {
@@ -565,34 +534,34 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 6px 14px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .historyBtn:hover {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text);
 }
 
 .historyBtnActive {
-  background-color: #eff6ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background-color: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .recalculateBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
   border: none;
   border-radius: 8px;
   padding: 6px 16px;
@@ -600,11 +569,11 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 4px var(--color-primary-glow);
 }
 
 .recalculateBtn:hover {
-  background-color: #1d4ed8;
+  background-color: var(--color-primary-hover);
 }
 
 .spinAnimation {
@@ -627,7 +596,7 @@
 .sectionHeading {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0;
@@ -635,7 +604,7 @@
 
 .sectionSubTag {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--color-text-dim);
   font-weight: 500;
 }
 
@@ -645,15 +614,15 @@
   gap: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--color-primary);
 }
 
 .greenDotLive {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #16a34a;
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+  background-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-glow);
 }
 
 /* 6-Card Activity Summary Grid */
@@ -664,11 +633,11 @@
 }
 
 .summaryMetricCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 12px 14px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -683,19 +652,19 @@
 .summaryMetricLabel {
   font-size: 0.76rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .summaryMetricValue {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 2px 0;
 }
 
 .summaryMetricSubtitle {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--color-text-dim);
   line-height: 1.3;
 }
 
@@ -707,11 +676,11 @@
 }
 
 .scoreCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 12px 14px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -726,7 +695,7 @@
 .scoreCardLabel {
   font-size: 0.76rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .scoreValueRow {
@@ -738,17 +707,18 @@
 .bigScoreNumber {
   font-size: 1.35rem;
   font-weight: 800;
+  color: var(--color-text);
 }
 
 .scoreOutOf {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--color-text-dim);
 }
 
 .scoreBarTrack {
   height: 6px;
-  background-color: #e2e8f0;
+  background-color: var(--chart-track);
   border-radius: 9999px;
   overflow: hidden;
   margin: 2px 0;
@@ -762,7 +732,7 @@
 
 .scoreDescription {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   line-height: 1.3;
 }
 
@@ -775,8 +745,8 @@
 }
 
 .auxScoreCard {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 10px 14px;
   display: flex;
@@ -787,24 +757,24 @@
 .auxScoreLabel {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .auxScoreValue {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .auxScoreSub {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: var(--color-text-dim);
 }
 
 /* History Drawer Panel */
 .historyPanel {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1rem;
   margin-top: 0.5rem;
@@ -817,7 +787,7 @@
 .historyTitle {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -834,8 +804,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.78rem;
@@ -843,27 +813,27 @@
 
 .historyDate {
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text);
 }
 
 .historyStats {
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .historyScoreBadge {
   font-weight: 700;
-  color: #16a34a;
+  color: var(--color-primary);
 }
 
 /* Delete Confirmation Dialog */
 .dialog {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 0;
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   max-width: 440px;
   width: 90%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 .dialogContent {
@@ -873,13 +843,13 @@
 .dialogTitle {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
   margin: 0 0 0.5rem 0;
 }
 
 .dialogBody {
   font-size: 0.88rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   margin: 0 0 1.25rem 0;
   line-height: 1.5;
 }
@@ -898,6 +868,15 @@
 }
 
 @media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+  .addGoalBtn {
+    width: 100%;
+    justify-content: center;
+  }
   .activitySummaryGrid,
   .scoresGrid {
     grid-template-columns: 1fr;
@@ -906,9 +885,16 @@
     grid-template-columns: 1fr;
   }
   .kpiGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
   .goalsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 440px) {
+  .kpiGrid {
     grid-template-columns: 1fr;
   }
 }

@@ -1,67 +1,162 @@
+/* ==========================================================================
+   Digital Attention Management Design System
+   Dual Theme Architecture:
+   - Light Mode: The Original / Very First Theme (Deep Navy Sidebar, Slate Canvas #F8FAFC, 
+                 Pure White Cards, Cobalt Blue #2563EB & Emerald Green #10B981 Accents)
+   - Dark Mode:  Midnight Black (#11101C, #171528) with Electric Purple (#8B5CF6) 
+                 and Blue Accents (#3B82F6, Mint Green #10D995)
+   ========================================================================== */
+
+:root,
+:root[data-theme='light'] {
+  /* LIGHT MODE PALETTE (Mobile Design System) */
+  --color-bg: #F3F0FF;
+  --color-canvas: #F3F0FF;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F8F6FF;
+  --color-surface-elevated: #FFFFFF;
+  --color-border: #E4DCFA;
+  --color-border-subtle: #EDE8FC;
+  --color-border-focus: #7047EB;
+
+  /* Typography Colors */
+  --color-text: #191827;
+  --color-text-muted: #77778A;
+  --color-text-dim: #9D9DAF;
+
+  /* Desktop Sidebar */
+  --color-sidebar-bg: #191827;
+  --color-sidebar-border: #2B2844;
+  --color-sidebar-text: #A7B1C5;
+  --color-sidebar-muted: #77778A;
+  --color-sidebar-active-bg: #7047EB;
+  --color-sidebar-active-text: #FFFFFF;
+  --color-sidebar-hover-bg: rgba(255, 255, 255, 0.08);
+
+  --color-topbar-bg: #FFFFFF;
+  --color-topbar-border: #E4DCFA;
+  --color-bottombar-bg: #FFFFFF;
+  --color-bottombar-border: #E4DCFA;
+
+  /* Primary Violet */
+  --color-primary: #7047EB;
+  --color-primary-hover: #5E36D9;
+  --color-primary-contrast: #FFFFFF;
+  --color-primary-subtle: rgba(112, 71, 235, 0.1);
+  --color-primary-glow: rgba(112, 71, 235, 0.25);
+  --color-primary-bright: #8B68F6;
+
+  /* Accent Cobalt Blue */
+  --color-accent: #348BFF;
+  --color-accent-hover: #1E75EB;
+  --color-accent-bg: rgba(52, 139, 255, 0.1);
+  --color-accent-border: rgba(52, 139, 255, 0.3);
+
+  --color-danger: #EF4444;
+  --color-danger-hover: #DC2626;
+  --color-danger-contrast: #FFFFFF;
+  --color-danger-surface: #FEE2E2;
+  --color-success: #13B981;
+  --color-success-surface: #D1FAE5;
+  --color-neutral-subtle: #F8F6FF;
+
+  /* Chart Colors */
+  --chart-productive: #13B981;
+  --chart-communication: #348BFF;
+  --chart-entertainment: #F59E0B;
+  --chart-social: #7047EB;
+  --chart-other: #9D9DAF;
+  --chart-track: #E4DCFA;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(112, 71, 235, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(112, 71, 235, 0.08), 0 2px 4px -2px rgba(112, 71, 235, 0.04);
+  --shadow-card: 0 2px 8px rgba(112, 71, 235, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme='dark'] {
+  /* DARK MODE PALETTE (Mobile Design System) */
+  --color-bg: #0B1020;
+  --color-canvas: #0B1020;
+  --color-surface: #121A2D;
+  --color-surface-subtle: #19243A;
+  --color-surface-elevated: #1F2D48;
+  --color-border: #233150;
+  --color-border-subtle: rgba(35, 49, 80, 0.7);
+  --color-border-focus: #7047EB;
+
+  /* Typography Colors */
+  --color-text: #FFFFFF;
+  --color-text-muted: #A7B1C5;
+  --color-text-dim: #6E7B95;
+
+  /* Sidebar */
+  --color-sidebar-bg: #0B1020;
+  --color-sidebar-border: #233150;
+  --color-sidebar-text: #A7B1C5;
+  --color-sidebar-muted: #6E7B95;
+  --color-sidebar-active-bg: #7047EB;
+  --color-sidebar-active-text: #FFFFFF;
+  --color-sidebar-hover-bg: rgba(112, 71, 235, 0.14);
+
+  --color-topbar-bg: #121A2D;
+  --color-topbar-border: #233150;
+  --color-bottombar-bg: #121A2D;
+  --color-bottombar-border: #233150;
+
+  /* Primary Violet */
+  --color-primary: #7047EB;
+  --color-primary-hover: #835BF0;
+  --color-primary-contrast: #FFFFFF;
+  --color-primary-subtle: rgba(112, 71, 235, 0.2);
+  --color-primary-glow: rgba(112, 71, 235, 0.35);
+  --color-primary-bright: #9372F7;
+
+  /* Accents */
+  --color-accent: #348BFF;
+  --color-accent-hover: #509CFF;
+  --color-accent-bg: rgba(52, 139, 255, 0.16);
+  --color-accent-border: rgba(52, 139, 255, 0.38);
+
+  --color-danger: #EF4444;
+  --color-danger-hover: #DC2626;
+  --color-danger-contrast: #FFFFFF;
+  --color-danger-surface: rgba(239, 68, 68, 0.18);
+  --color-success: #13B981;
+  --color-success-surface: rgba(19, 185, 129, 0.16);
+  --color-neutral-subtle: #19243A;
+
+  /* Chart Colors */
+  --chart-productive: #13B981;
+  --chart-communication: #348BFF;
+  --chart-entertainment: #835BF0;
+  --chart-social: #6366F1;
+  --chart-other: #6E7B95;
+  --chart-track: #19243A;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 :root {
-  --color-bg: #f8fafc;
-  --color-canvas: #f8fafc;
-  --color-surface: #ffffff;
-  --color-surface-subtle: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-subtle: #f1f5f9;
-  --color-border-focus: #2563eb;
-  
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-light: #94a3b8;
-  
-  /* Sidebar Palette matching Login Page */
-  --color-sidebar-bg: #0f172a;
-  --color-sidebar-border: #1e293b;
-  --color-sidebar-text: #94a3b8;
-  --color-sidebar-muted: #64748b;
-  --color-sidebar-active-bg: #2563eb;
-  --color-sidebar-active-text: #ffffff;
-  --color-sidebar-hover-bg: rgba(255, 255, 255, 0.07);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 
-  /* Primary Blue (Login Brand Color) */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-contrast: #ffffff;
-  --color-primary-gradient: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
-  --color-primary-subtle: #eff6ff;
-
-  /* Accent Emerald (Login Accent Green) */
-  --color-accent: #10b981;
-  --color-accent-hover: #059669;
-  --color-accent-bg: #ecfdf5;
-  --color-accent-border: #a7f3d0;
-
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-  --color-danger-contrast: #ffffff;
-  --color-danger-surface: #fef2f2;
-  --color-success: #10b981;
-  --color-success-surface: #ecfdf5;
-  --color-neutral-subtle: #f1f5f9;
-
-  --font-serif: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-serif: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
-
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
 }
 
 *,
@@ -80,6 +175,11 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  max-width: 100vw;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #root {
@@ -89,26 +189,10 @@ body {
 }
 
 a {
-  color: var(--color-primary);
+  color: inherit;
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--color-border-focus);
-  outline-offset: 2px;
+button {
+  font-family: inherit;
 }

@@ -81,6 +81,27 @@ export class ErrorBoundary extends Component<Props, State> {
             >
               The screen went blank or encountered an unexpected rendering issue. Click the button below to instantly refresh and restore your view.
             </p>
+            {this.state.error && (
+              <div
+                style={{
+                  marginBottom: '1.25rem',
+                  padding: '0.75rem',
+                  backgroundColor: '#0f172a',
+                  border: '1px solid #ef4444',
+                  borderRadius: '8px',
+                  color: '#fca5a5',
+                  fontSize: '0.75rem',
+                  textAlign: 'left',
+                  maxHeight: '140px',
+                  overflowY: 'auto',
+                  wordBreak: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                <strong>Error: </strong>
+                {this.state.error.message || String(this.state.error)}
+              </div>
+            )}
             <div
               style={{
                 display: 'flex',
@@ -93,8 +114,8 @@ export class ErrorBoundary extends Component<Props, State> {
                 type="button"
                 onClick={() => window.location.reload()}
                 style={{
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                  color: '#ffffff',
+                  background: 'var(--color-primary)',
+                  color: 'var(--color-primary-contrast)',
                   border: 'none',
                   padding: '0.875rem 2rem',
                   borderRadius: '8px',
@@ -106,7 +127,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                  boxShadow: '0 4px 14px var(--color-primary-glow)',
                   transition: 'transform 0.15s ease',
                 }}
               >
@@ -125,6 +146,30 @@ export class ErrorBoundary extends Component<Props, State> {
                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                 </svg>
                 <span>Refresh Screen</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('atn_access_token');
+                    localStorage.removeItem('atn_refresh_token');
+                    localStorage.removeItem('atn_auth_user');
+                  } catch {}
+                  window.location.href = '/login';
+                }}
+                style={{
+                  background: 'rgba(56, 189, 248, 0.1)',
+                  color: '#38bdf8',
+                  border: '1px solid #0284c7',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  width: '100%',
+                }}
+              >
+                Go to Login Page
               </button>
               <button
                 type="button"

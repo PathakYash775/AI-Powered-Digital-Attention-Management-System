@@ -6,6 +6,7 @@ declare global {
   namespace Express {
     interface Request {
       userId?: string;
+      userRole?: 'user' | 'admin';
     }
   }
 }
@@ -24,5 +25,6 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   }
 
   req.userId = verified.userId;
+  req.userRole = (verified.role as 'user' | 'admin') || 'user';
   next();
 }

@@ -1,8 +1,9 @@
 import { apiClient } from './client';
-import type { FocusSessionItem, PaginatedResult } from './types';
+import type { FocusSessionItem, PaginatedResult, SmartFocusPlan } from './types';
 
 export interface StartFocusSessionPayload {
   plannedMin: number;
+  taskId?: string;
 }
 
 export interface StopFocusSessionPayload {
@@ -12,6 +13,11 @@ export interface StopFocusSessionPayload {
 export const focusApi = {
   async getActiveSession(): Promise<FocusSessionItem | null> {
     const res = await apiClient.get<FocusSessionItem | null>('/focus-sessions/active');
+    return res.data;
+  },
+
+  async getSmartPlan(): Promise<SmartFocusPlan> {
+    const res = await apiClient.get<SmartFocusPlan>('/focus-sessions/planner');
     return res.data;
   },
 

@@ -1,14 +1,21 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { authApi } from '../../api/auth';
-import { setOnUnauthorized } from '../../api/client';
+import {
+  getAccessToken,
+  isTokenExpired,
+  setAccessToken,
+  setOnUnauthorized,
+  setRefreshToken,
+} from '../../api/client';
 import type { LoginPayload, RegisterPayload, User } from '../../api/types';
 
 export interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
-  login: (data: LoginPayload) => Promise<void>;
-  register: (data: RegisterPayload) => Promise<void>;
+  login: (data: LoginPayload) => Promise<User>;
+  register: (data: RegisterPayload) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -21,9 +28,27 @@ export function getSafeRedirect(target: string | null): string {
   return '/';
 }
 
+const USER_STORAGE_KEY = 'atn_auth_user';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(USER_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('atn_access_token');
+      return Boolean(token && !isTokenExpired(token));
+    }
+    return false;
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -33,20 +58,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (mounted) {
         setUser(null);
         setIsAuthenticated(false);
+        setAccessToken(null);
+        setRefreshToken(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(USER_STORAGE_KEY);
+        }
       }
     });
 
     authApi
       .refresh()
-      .then(() => {
+      .then((res) => {
         if (mounted) {
           setIsAuthenticated(true);
+          if (res?.user) {
+            setUser(res.user);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(res.user));
+            }
+          }
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (mounted) {
-          setIsAuthenticated(false);
-          setUser(null);
+          const status = (err as { response?: { status?: number } })?.response?.status;
+          const isAuthError = status === 401 || status === 403;
+          const token = getAccessToken();
+          if (!token || isTokenExpired(token) || isAuthError) {
+            setAccessToken(null);
+            setRefreshToken(null);
+            setIsAuthenticated(false);
+            setUser(null);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem(USER_STORAGE_KEY);
+            }
+          }
         }
       })
       .finally(() => {
@@ -61,16 +107,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (data: LoginPayload) => {
+  const login = async (data: LoginPayload): Promise<User> => {
     const res = await authApi.login(data);
     setUser(res.user);
     setIsAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(res.user));
+    }
+    return res.user;
   };
 
-  const register = async (data: RegisterPayload) => {
+  const register = async (data: RegisterPayload): Promise<User> => {
     const res = await authApi.register(data);
     setUser(res.user);
     setIsAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(res.user));
+    }
+    return res.user;
   };
 
   const logout = async () => {
@@ -79,14 +133,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null);
       setIsAuthenticated(false);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(USER_STORAGE_KEY);
+      }
     }
   };
+
+  const isAdmin = Boolean(user?.role === 'admin');
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated,
+        isAdmin,
         isLoading,
         login,
         register,

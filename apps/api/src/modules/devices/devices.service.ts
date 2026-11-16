@@ -43,7 +43,8 @@ export const devicesService = {
   },
 
   async pairDevice(input: PairDeviceInput) {
-    const codeHash = hashToken(input.code);
+    const code = input.code.trim().toUpperCase();
+    const codeHash = hashToken(code);
 
     return prisma.$transaction(async (tx) => {
       const codeRecord = await tx.pairingCode.findUnique({
@@ -68,9 +69,15 @@ export const devicesService = {
           name: input.deviceName,
           platform: input.platform ?? 'chrome',
           tokenHash,
+          lastSeenAt: new Date(),
         },
         select: {
           id: true,
+          userId: true,
+          name: true,
+          platform: true,
+          createdAt: true,
+          lastSeenAt: true,
         },
       });
 
@@ -79,6 +86,9 @@ export const devicesService = {
       return {
         deviceId: device.id,
         deviceToken: rawDeviceToken,
+        deviceName: device.name,
+        platform: device.platform,
+        registeredAt: device.createdAt.toISOString(),
       };
     });
   },
@@ -92,6 +102,7 @@ export const devicesService = {
         platform: true,
         lastSeenAt: true,
         revokedAt: true,
+        createdAt: true,
       },
       orderBy: { id: 'asc' },
     });
@@ -115,16 +126,27 @@ export const devicesService = {
   },
 
   async getExtensionStatus(userId: string) {
-    const activeDevice = await prisma.device.findFirst({
-      where: { userId, revokedAt: null },
+    let activeDevice = await prisma.device.findFirst({
+      where: { userId, platform: 'chrome', revokedAt: null },
       orderBy: { lastSeenAt: 'desc' },
-      select: { id: true, name: true, platform: true, lastSeenAt: true },
+      select: { id: true, name: true, platform: true, lastSeenAt: true, createdAt: true },
     });
 
-    const isConnected = Boolean(activeDevice);
-    const recentThreshold = new Date(Date.now() - 5 * 60 * 1000);
-    const isRecentlyActive = Boolean(activeDevice?.lastSeenAt && activeDevice.lastSeenAt >= recentThreshold);
-    void isRecentlyActive;
+    if (!activeDevice) {
+      activeDevice = await prisma.device.findFirst({
+        where: { userId, revokedAt: null },
+        orderBy: { lastSeenAt: 'desc' },
+        select: { id: true, name: true, platform: true, lastSeenAt: true, createdAt: true },
+      });
+    }
+
+    const RECENT_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes threshold for real-time heartbeat / activity
+    const isRecentlyActive = Boolean(
+      activeDevice?.lastSeenAt &&
+      Date.now() - new Date(activeDevice.lastSeenAt).getTime() <= RECENT_THRESHOLD_MS,
+    );
+    // Real status derived from recent successful communication
+    const isConnected = isRecentlyActive;
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -145,7 +167,17 @@ export const devicesService = {
 
     return {
       connected: isConnected,
-      activeDevice,
+      isRecentlyActive,
+      lastActiveTime: activeDevice?.lastSeenAt ? activeDevice.lastSeenAt.toISOString() : null,
+      registeredAt: activeDevice?.createdAt ? activeDevice.createdAt.toISOString() : null,
+      activeDevice: activeDevice
+        ? {
+            id: activeDevice.id,
+            name: activeDevice.name,
+            platform: activeDevice.platform,
+            lastSeenAt: activeDevice.lastSeenAt ? activeDevice.lastSeenAt.toISOString() : null,
+          }
+        : null,
       todayStats: {
         activityCount,
         switchCount,
@@ -154,11 +186,15 @@ export const devicesService = {
       },
       extensionName: 'Digital Attention Tracker',
       version: '1.0.0',
-      syncEndpoint: 'http://127.0.0.1:8000/api/activity',
+      syncEndpoint: '/api/v1/ingest/activity',
     };
   },
 
-  async autoLinkDevice(userId: string, deviceName = 'Digital Attention Tracker (Chrome)') {
+  async autoLinkDevice(
+    userId: string,
+    deviceName = 'Digital Attention Tracker (Chrome)',
+    platform: 'chrome' | 'windows' | 'android' = 'chrome',
+  ) {
     let device = await prisma.device.findFirst({
       where: { userId, name: deviceName, revokedAt: null },
     });
@@ -170,7 +206,7 @@ export const devicesService = {
         data: {
           userId,
           name: deviceName,
-          platform: 'chrome',
+          platform,
           tokenHash,
           lastSeenAt: new Date(),
         },
@@ -178,19 +214,24 @@ export const devicesService = {
       return {
         deviceId: device.id,
         name: device.name,
+        platform: device.platform,
         deviceToken: rawToken,
         created: true,
       };
     }
 
+    const rawToken = generateDeviceToken();
+    const tokenHash = hashToken(rawToken);
     await prisma.device.update({
       where: { id: device.id },
-      data: { lastSeenAt: new Date() },
+      data: { lastSeenAt: new Date(), tokenHash },
     });
 
     return {
       deviceId: device.id,
       name: device.name,
+      platform: device.platform,
+      deviceToken: rawToken,
       created: false,
     };
   },

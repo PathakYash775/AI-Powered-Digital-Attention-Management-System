@@ -104,6 +104,37 @@ class TestJsApiBridge(unittest.TestCase):
         self.assertEqual(res["dashboardUrl"], "http://localhost:5173")
         mock_shell.on_device_paired.assert_called_once_with("mock_token_12345")
 
+    @patch("app.pairing.disconnect_device")
+    def test_js_api_unpair(self, mock_disconnect):
+        mock_shell = MagicMock()
+        mock_shell.config = TrackerConfig()
+        mock_shell.config.device_token = "tok_123"
+        mock_shell.engine = MagicMock()
+        js_api = DesktopAppJsApi(mock_shell)
+
+        res = js_api.unpair()
+        self.assertTrue(res["success"])
+        self.assertIsNone(mock_shell.config.device_token)
+        mock_disconnect.assert_called_once()
+        mock_shell.engine.pause.assert_called_once()
+
+    @patch("app.shell.is_autostart_enabled", return_value=True)
+    def test_js_api_get_autostart(self, mock_is_auto):
+        mock_shell = MagicMock()
+        js_api = DesktopAppJsApi(mock_shell)
+        res = js_api.get_autostart_status()
+        self.assertTrue(res["enabled"])
+
+    @patch("app.shell.set_autostart", return_value=True)
+    @patch("app.shell.is_autostart_enabled", return_value=True)
+    def test_js_api_set_autostart(self, mock_is_auto, mock_set_auto):
+        mock_shell = MagicMock()
+        js_api = DesktopAppJsApi(mock_shell)
+        res = js_api.set_autostart_status(True)
+        self.assertTrue(res["success"])
+        self.assertTrue(res["enabled"])
+        mock_set_auto.assert_called_once_with(enable=True)
+
 
 class TestAttentionDesktopAppInit(unittest.TestCase):
     def test_desktop_app_init_defaults(self):

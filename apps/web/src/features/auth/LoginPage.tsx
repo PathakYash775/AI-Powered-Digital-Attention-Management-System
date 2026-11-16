@@ -12,6 +12,10 @@ export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const [selectedRole, setSelectedRole] = useState<'user' | 'admin'>(() => {
+    return queryParams.get('role') === 'admin' ? 'admin' : 'user';
+  });
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -27,27 +31,52 @@ export function LoginPage() {
     },
   });
 
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  const queryParams = new URLSearchParams(location.search);
   const redirectTo = getSafeRedirect(queryParams.get('from'));
+
+  if (isAuthenticated) {
+    const dest = redirectTo && redirectTo !== '/login' ? redirectTo : '/';
+    return <Navigate to={dest} replace />;
+  }
 
   const onSubmit = async (data: LoginFormValues) => {
     setServerError(null);
     try {
-      await login({
+      const loggedInUser = await login({
         email: data.email.trim().toLowerCase(),
         password: data.password,
+        intendedRole: selectedRole,
+        selectedRole: selectedRole,
       });
-      navigate(redirectTo, { replace: true });
+
+      let dest = redirectTo && redirectTo !== '/login' ? redirectTo : '/';
+      if (selectedRole === 'admin' && loggedInUser?.role === 'admin' && (!redirectTo || redirectTo === '/')) {
+        dest = '/admin';
+      }
+      navigate(dest, { replace: true });
     } catch (err: unknown) {
-      if (isAxiosError<ApiErrorResponse>(err) && err.response?.data?.error) {
-        const code = err.response.data.error.code;
-        if (code === 'RATE_LIMITED') {
-          setServerError('Too many attempts. Try again in a minute.');
+      if (isAxiosError<ApiErrorResponse>(err)) {
+        if (!err.response) {
+          setServerError('Unable to connect to backend server. Make sure the API server is running on port 8000.');
           return;
+        }
+        const errorData = err.response.data?.error;
+        if (errorData) {
+          if (errorData.code === 'RATE_LIMITED') {
+            setServerError('Too many attempts. Try again in a minute.');
+            return;
+          }
+          if (errorData.code === 'FORBIDDEN' || errorData.message?.includes('administrator') || errorData.message?.includes('Login')) {
+            setServerError(errorData.message);
+            return;
+          }
+          if (errorData.code === 'UNAUTHENTICATED' || errorData.message?.toLowerCase().includes('credential')) {
+            setServerError('Invalid email or password');
+            return;
+          }
+          if (errorData.message) {
+            setServerError(errorData.message);
+            return;
+          }
         }
       }
       setServerError('Invalid email or password');
@@ -208,14 +237,65 @@ export function LoginPage() {
         <section className={styles.formPanel}>
           <div className={styles.pillBadgeRow}>
             <span className={styles.welcomePill}>
-              <span role="img" aria-label="sun">☀️</span> Welcome Back
+              {selectedRole === 'admin' ? (
+                <>
+                  <span role="img" aria-label="shield">🛡️</span> Administrator Console
+                </>
+              ) : (
+                <>
+                  <span role="img" aria-label="sun">☀️</span> Welcome Back
+                </>
+              )}
             </span>
           </div>
 
+          {/* Role Selection Segmented Control */}
+          <div className={styles.roleSelectorContainer} role="tablist" aria-label="Select login role">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedRole === 'user'}
+              className={`${styles.roleTab} ${selectedRole === 'user' ? styles.roleTabActive : ''}`}
+              onClick={() => {
+                setSelectedRole('user');
+                setServerError(null);
+              }}
+            >
+              <span className={styles.roleTabIcon} aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <span>User Login</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedRole === 'admin'}
+              className={`${styles.roleTab} ${selectedRole === 'admin' ? styles.roleTabActive : ''}`}
+              onClick={() => {
+                setSelectedRole('admin');
+                setServerError(null);
+              }}
+            >
+              <span className={styles.roleTabIcon} aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </span>
+              <span>Admin Login</span>
+            </button>
+          </div>
+
           <div className={styles.formHeader}>
-            <h1 className={styles.title}>Sign in to your account</h1>
+            <h1 className={styles.title}>
+              {selectedRole === 'admin' ? 'Admin Authentication' : 'Sign in to your account'}
+            </h1>
             <p className={styles.subtitle}>
-              Access your digital attention &amp; focus dashboard
+              {selectedRole === 'admin'
+                ? 'Access the system administration & telemetry governance console'
+                : 'Access your digital attention & focus dashboard'}
             </p>
           </div>
 
@@ -265,8 +345,9 @@ export function LoginPage() {
                 <input
                   id="login-email"
                   type="email"
-                  autoComplete="email"
-                  placeholder="yashpathak086@gmail.com"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="example@gmail.com"
                   className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
                   aria-describedby={errors.email ? 'login-email-error' : undefined}
                   {...register('email')}
@@ -372,13 +453,14 @@ export function LoginPage() {
               type="submit"
               disabled={isSubmitting}
               className={styles.submitBtn}
-              aria-label={isSubmitting ? 'Logging in...' : 'Log in'}
+              aria-label={isSubmitting ? 'Logging in...' : (selectedRole === 'admin' ? 'Sign in as Admin' : 'Log in')}
             >
               {isSubmitting ? (
                 'Logging in...'
               ) : (
                 <>
-                  Log in <span aria-hidden="true">→</span>
+                  {selectedRole === 'admin' ? 'Sign in as Administrator' : 'Log in'}{' '}
+                  <span aria-hidden="true">→</span>
                 </>
               )}
             </button>

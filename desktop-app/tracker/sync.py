@@ -13,7 +13,7 @@ MAX_BATCHES_PER_CYCLE = 5
 
 
 class SyncClient:
-    """Handles batched HTTP ingest against the Digital Attention API."""
+    """Handles batched HTTP ingest and heartbeat pings against the Digital Attention API."""
 
     def __init__(
         self,
@@ -28,10 +28,29 @@ class SyncClient:
         self._token_clearer = token_clearer or self._default_clear_token
 
         self.last_sync_time: Optional[float] = None
+        self.last_heartbeat_time: Optional[float] = None
         self.last_error: Optional[str] = None
         self.dropped_count: int = 0
 
+    def _get_endpoint(self, path: str) -> str:
+        """Resolve API subpath ensuring /api/v1 prefix is correctly preserved."""
+        clean_path = path.lstrip("/")
+        base = self.api_base_url
+        if base.endswith("/api/v1"):
+            return f"{base}/{clean_path}"
+        if clean_path.startswith("api/v1/"):
+            return f"{base}/{clean_path}"
+        return f"{base}/api/v1/{clean_path}"
+
     def _default_get_token(self) -> Optional[str]:
+        try:
+            from app.pairing import get_stored_device_token
+            token = get_stored_device_token()
+            if token:
+                return token
+        except Exception:
+            pass
+
         try:
             import keyring
             return keyring.get_password("AttentionTracker", "device_token")
@@ -40,10 +59,50 @@ class SyncClient:
 
     def _default_clear_token(self) -> None:
         try:
+            from app.pairing import clear_device_token
+            clear_device_token()
+        except Exception:
+            pass
+
+        try:
             import keyring
             keyring.delete_password("AttentionTracker", "device_token")
         except Exception:
             pass
+
+    def send_heartbeat(self) -> dict:
+        """Send periodic heartbeat ping to keep device status alive and check token validity."""
+        token = self._token_getter()
+        if not token:
+            return {"status": "unpaired"}
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        url = self._get_endpoint("devices/heartbeat")
+
+        try:
+            resp = requests.post(
+                url,
+                json={},
+                headers=headers,
+                timeout=REQUEST_TIMEOUT_SECONDS,
+            )
+            if resp.status_code == 200:
+                self.last_heartbeat_time = time.time()
+                self.last_error = None
+                return {"status": "ok", "last_heartbeat_time": self.last_heartbeat_time}
+            elif resp.status_code == 401:
+                self._token_clearer()
+                self.last_error = "Device authentication revoked (HTTP 401)"
+                return {"status": "auth_revoked", "error": self.last_error}
+            else:
+                self.last_error = f"Heartbeat failed: HTTP {resp.status_code}"
+                return {"status": "error", "error": self.last_error}
+        except (requests.RequestException, Exception) as exc:
+            self.last_error = f"Heartbeat network failure: {exc}"
+            return {"status": "error", "error": self.last_error}
 
     def sync_once(self) -> dict:
         """Perform a single sync cycle. Returns status summary."""
@@ -70,7 +129,7 @@ class SyncClient:
 
             try:
                 resp = requests.post(
-                    f"{self.api_base_url}/ingest/activity",
+                    self._get_endpoint("ingest/activity"),
                     json={"events": events},
                     headers=headers,
                     timeout=REQUEST_TIMEOUT_SECONDS,
@@ -80,6 +139,7 @@ class SyncClient:
                     self.buffer.delete_activities(ids)
                     synced_activities += len(ids)
                     self.last_sync_time = time.time()
+                    self.last_heartbeat_time = self.last_sync_time
                     self.last_error = None
                 elif resp.status_code == 400:
                     # Malformed or rejected batch: drop to prevent queue lockup
@@ -112,7 +172,7 @@ class SyncClient:
 
             try:
                 resp = requests.post(
-                    f"{self.api_base_url}/ingest/switches",
+                    self._get_endpoint("ingest/switches"),
                     json={"events": events},
                     headers=headers,
                     timeout=REQUEST_TIMEOUT_SECONDS,
@@ -122,6 +182,7 @@ class SyncClient:
                     self.buffer.delete_switches(ids)
                     synced_switches += len(ids)
                     self.last_sync_time = time.time()
+                    self.last_heartbeat_time = self.last_sync_time
                     self.last_error = None
                 elif resp.status_code == 400:
                     self.buffer.delete_switches(ids)
@@ -138,9 +199,21 @@ class SyncClient:
                 self.last_error = f"Network failure: {exc}"
                 break
 
+        # 3. Heartbeat ping when no activity or switch events were sent
+        if synced_activities == 0 and synced_switches == 0 and not self.last_error:
+            hb_result = self.send_heartbeat()
+            if hb_result.get("status") == "auth_revoked":
+                return {
+                    "status": "auth_revoked",
+                    "synced_activities": 0,
+                    "synced_switches": 0,
+                    "error": hb_result.get("error"),
+                }
+
         return {
             "status": "ok" if not self.last_error else "error",
             "synced_activities": synced_activities,
             "synced_switches": synced_switches,
+            "last_heartbeat_time": self.last_heartbeat_time,
             "error": self.last_error,
         }

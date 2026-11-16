@@ -119,3 +119,69 @@ def test_sync_server_error_retains_events(tmp_path: Path):
     assert res["status"] == "error"
     act_count, _ = buf.get_counts()
     assert act_count == 1
+
+
+def test_heartbeat_success(tmp_path: Path):
+    buf = EventBuffer(tmp_path / "sync.db")
+    client = SyncClient(
+        api_base_url="http://127.0.0.1:8000/api/v1",
+        buffer=buf,
+        token_getter=lambda: "valid_token",
+    )
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"status": "ok", "deviceId": "dev-1"}
+
+    with patch("requests.post", return_value=mock_resp) as mock_post:
+        res = client.send_heartbeat()
+
+    assert res["status"] == "ok"
+    assert client.last_heartbeat_time is not None
+    assert client.last_error is None
+    mock_post.assert_called_once()
+    assert "/devices/heartbeat" in mock_post.call_args[0][0]
+    assert mock_post.call_args[1]["headers"]["Authorization"] == "Bearer valid_token"
+
+
+def test_heartbeat_auth_revoked_clears_token(tmp_path: Path):
+    buf = EventBuffer(tmp_path / "sync.db")
+    cleared = []
+    client = SyncClient(
+        api_base_url="http://127.0.0.1:8000/api/v1",
+        buffer=buf,
+        token_getter=lambda: "revoked_token",
+        token_clearer=lambda: cleared.append(True),
+    )
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 401
+
+    with patch("requests.post", return_value=mock_resp):
+        res = client.send_heartbeat()
+
+    assert res["status"] == "auth_revoked"
+    assert len(cleared) == 1
+    assert "revoked" in client.last_error
+
+
+def test_idle_sync_sends_heartbeat(tmp_path: Path):
+    buf = EventBuffer(tmp_path / "sync.db")
+    client = SyncClient(
+        api_base_url="http://127.0.0.1:8000/api/v1",
+        buffer=buf,
+        token_getter=lambda: "test_token",
+    )
+
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+
+    with patch("requests.post", return_value=mock_resp) as mock_post:
+        res = client.sync_once()
+
+    assert res["status"] == "ok"
+    assert res["synced_activities"] == 0
+    assert res["synced_switches"] == 0
+    assert client.last_heartbeat_time is not None
+    mock_post.assert_called_once()
+    assert "/devices/heartbeat" in mock_post.call_args[0][0]

@@ -73,11 +73,11 @@
 }
 
 .presetBtn.activePreset {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: #ffffff;
-  border-color: #2563eb;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 12px var(--color-primary-glow);
 }
 
 .presetBtn:disabled {
@@ -110,15 +110,15 @@
 
 .ringProgress {
   fill: none;
-  stroke: #2563eb;
+  stroke: var(--color-primary);
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.5s ease;
 }
 
 .ringProgress.activeColor {
-  stroke: #10b981;
-  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));
+  stroke: var(--color-primary);
+  filter: drop-shadow(0 0 6px var(--color-primary-glow));
 }
 
 .clockCenter {
@@ -150,9 +150,9 @@
 }
 
 .activePill {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .timeText {
@@ -183,21 +183,22 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2.25rem;
-  background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px var(--color-primary-glow);
   transition: all 0.2s ease;
 }
 
 .startBtn:hover:not(:disabled) {
-  opacity: 0.95;
+  opacity: 0.92;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 6px 20px var(--color-primary-glow);
 }
 
 .startBtn:disabled {
@@ -210,19 +211,19 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.75rem;
-  background-color: #10b981;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px var(--color-primary-glow);
   transition: all 0.15s ease;
 }
 
 .completeBtn:hover:not(:disabled) {
-  background-color: #059669;
+  background-color: var(--color-primary-hover);
 }
 
 .abandonBtn {
@@ -231,8 +232,8 @@
   gap: 0.4rem;
   padding: 0.75rem 1.25rem;
   background-color: transparent;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
   border-radius: var(--radius-md);
   font-size: 0.88rem;
   font-weight: 600;
@@ -241,7 +242,7 @@
 }
 
 .abandonBtn:hover:not(:disabled) {
-  background-color: #fef2f2;
+  background-color: var(--color-danger-surface);
 }
 
 /* History Card */
@@ -302,21 +303,21 @@
 }
 
 .completedTag {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .abandonedTag {
-  background-color: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
 }
 
 .activeTag {
-  background-color: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .emptyHistory {
@@ -324,4 +325,36 @@
   padding: 2.5rem 1rem;
   color: var(--color-text-muted);
   font-size: 0.88rem;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .timerCard {
+    padding: 1.5rem 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .clockContainer {
+    width: 220px;
+    height: 220px;
+    margin-bottom: 1.5rem;
+  }
+
+  .presetGroup {
+    margin-bottom: 1.5rem;
+    gap: 0.35rem;
+  }
+
+  .presetBtn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.76rem;
+  }
+
+  .historyCard {
+    padding: 1.15rem 1rem;
+  }
 }

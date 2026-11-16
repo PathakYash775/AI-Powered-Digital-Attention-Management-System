@@ -7,14 +7,17 @@ import { devicesApi } from '../../api/devices';
 import { useAuth } from '../auth/AuthContext';
 import { profileSchema, type ProfileFormValues } from './schemas';
 import { Spinner } from '../../components/ui/Spinner';
+import { useTheme } from '../../context/ThemeContext';
 import { getTimezoneGroups, getBrowserTimezone } from '../../lib/timezones';
+import { NotificationSettingsCard } from './NotificationSettingsCard';
 import type { ExtensionStatusResponse, DeviceItem, PairingCodeResponse } from '../../api/types';
 import styles from './ProfilePage.module.css';
 
 const timezoneGroups = getTimezoneGroups();
 
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -167,7 +170,7 @@ export function ProfilePage() {
     onError: () => {
       setErrorMessage('Failed to update profile. Please try again.');
       setSuccessMessage(null);
-      setTimeout(() => setErrorMessage(null), 4000);
+      setTimeout(() => setSuccessMessage(null), 4000);
     },
   });
 
@@ -211,7 +214,7 @@ export function ProfilePage() {
 
   // Display values
   const currentDisplayName = watchedDisplayName || profile?.displayName || 'Yash Pathak';
-  const currentEmail = user?.email && user.email !== 'user@example.com' ? user.email : 'yashpathak086@gmail.com';
+  const currentEmail = 'example@gmail.com';
   const isStudent = (watchedOccupation || profile?.occupationType || 'student') === 'student';
 
   // Compute initials
@@ -242,7 +245,7 @@ export function ProfilePage() {
         onChange={handlePhotoUpload}
       />
 
-      {/* Top Header matching Image 1 */}
+      {/* Top Header */}
       <header className={styles.headerRow}>
         <div className={styles.headerIconBox}>
           <svg
@@ -295,7 +298,7 @@ export function ProfilePage() {
         </div>
       )}
 
-      {/* Two-Column Grid matching Image 1 */}
+      {/* Two-Column Grid */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className={styles.layoutGrid}>
           {/* LEFT COLUMN: Personal Info + Work Schedule + Actions */}
@@ -447,7 +450,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setValue('timezone', getBrowserTimezone(), { shouldDirty: true })}
-                    style={{ fontSize: '0.78rem', background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0 }}
+                    className={styles.detectTzBtn}
                   >
                     📍 Detect Local Timezone
                   </button>
@@ -555,6 +558,60 @@ export function ProfilePage() {
             </div>
 
             {/* Bottom Actions Row: Save Changes & Log Out */}
+            {/* Theme & Appearance Selection */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardIconBox}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className={styles.cardTitle}>Theme &amp; Appearance</h2>
+                  <p className={styles.cardSubtitle}>
+                    Select your preferred visual style for the mobile and desktop interface.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.themeOptionsGrid}>
+                <button
+                  type="button"
+                  className={`${styles.themeOptionBtn} ${theme === 'dark' ? styles.themeOptionActive : ''}`}
+                  onClick={() => { if (theme !== 'dark') toggleTheme(); }}
+                >
+                  <div className={styles.themePreviewDark}>
+                    <div className={styles.themePreviewDot} />
+                  </div>
+                  <span className={styles.themeOptionName}>Dark Mode</span>
+                  <span className={styles.themeOptionDesc}>Midnight #0B1020</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.themeOptionBtn} ${theme === 'light' ? styles.themeOptionActive : ''}`}
+                  onClick={() => { if (theme !== 'light') toggleTheme(); }}
+                >
+                  <div className={styles.themePreviewLight}>
+                    <div className={styles.themePreviewDot} />
+                  </div>
+                  <span className={styles.themeOptionName}>Light Mode</span>
+                  <span className={styles.themeOptionDesc}>Violet #F3F0FF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Notification Intelligence & Quiet Hours Settings */}
+            <NotificationSettingsCard />
+
             <div className={styles.actionsRow}>
               <button
                 type="submit"
@@ -742,7 +799,7 @@ export function ProfilePage() {
                 <div className={styles.infoCardsGrid}>
                   <div className={styles.infoCard}>
                     <div className={styles.infoCardIcon}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       </svg>
                     </div>
@@ -753,7 +810,7 @@ export function ProfilePage() {
 
                   <div className={styles.infoCard}>
                     <div className={styles.infoCardIcon}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
                         <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                         <line x1="8" y1="21" x2="16" y2="21" />
                         <line x1="12" y1="17" x2="12" y2="21" />

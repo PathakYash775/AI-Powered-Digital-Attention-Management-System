@@ -45,8 +45,8 @@ export async function dummyVerifyPassword(): Promise<void> {
   }
 }
 
-export async function generateAccessToken(userId: string): Promise<string> {
-  return new SignJWT({})
+export async function generateAccessToken(userId: string, role = 'user'): Promise<string> {
+  return new SignJWT({ role })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(userId)
     .setIssuedAt()
@@ -54,13 +54,13 @@ export async function generateAccessToken(userId: string): Promise<string> {
     .sign(secretKey);
 }
 
-export async function verifyAccessToken(token: string): Promise<{ userId: string } | null> {
+export async function verifyAccessToken(token: string): Promise<{ userId: string; role?: string } | null> {
   try {
     const { payload } = await jwtVerify(token, secretKey, {
       algorithms: ['HS256'],
     });
     if (!payload.sub) return null;
-    return { userId: payload.sub };
+    return { userId: payload.sub, role: (payload.role as string) || 'user' };
   } catch {
     return null;
   }

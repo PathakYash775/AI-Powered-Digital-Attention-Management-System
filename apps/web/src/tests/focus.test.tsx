@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, afterAll, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
@@ -62,9 +63,11 @@ describe('Focus Sessions Feature with Timer Clock', () => {
   it('renders timer clock with 25:00 default and preset options', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
-      <QueryClientProvider client={qc}>
-        <FocusPage />
-      </QueryClientProvider>,
+      <MemoryRouter>
+        <QueryClientProvider client={qc}>
+          <FocusPage />
+        </QueryClientProvider>
+      </MemoryRouter>,
     );
 
     expect(await screen.findByText(/Focus Sessions & Timer/i)).toBeInTheDocument();
@@ -78,9 +81,11 @@ describe('Focus Sessions Feature with Timer Clock', () => {
     const user = userEvent.setup();
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
-      <QueryClientProvider client={qc}>
-        <FocusPage />
-      </QueryClientProvider>,
+      <MemoryRouter>
+        <QueryClientProvider client={qc}>
+          <FocusPage />
+        </QueryClientProvider>
+      </MemoryRouter>,
     );
 
     const sprintBtn = await screen.findByRole('button', { name: /15m Sprint/i });
@@ -93,9 +98,11 @@ describe('Focus Sessions Feature with Timer Clock', () => {
     const user = userEvent.setup();
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
-      <QueryClientProvider client={qc}>
-        <FocusPage />
-      </QueryClientProvider>,
+      <MemoryRouter>
+        <QueryClientProvider client={qc}>
+          <FocusPage />
+        </QueryClientProvider>
+      </MemoryRouter>,
     );
 
     const startBtn = await screen.findByRole('button', { name: /Start Focus Session/i });

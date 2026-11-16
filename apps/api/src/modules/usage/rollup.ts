@@ -168,7 +168,7 @@ export async function recomputeUsageForDates(userId: string, targetDates: string
             } else {
               hourBucket.activeSec += chunkSec;
               dailyActiveSec += chunkSec;
-              if (log.source === 'desktop' && log.appName) {
+              if ((log.source === 'desktop' || log.source === 'mobile') && log.appName) {
                 appSeconds[log.appName] = (appSeconds[log.appName] ?? 0) + chunkSec;
               } else if (log.domain) {
                 domainSeconds[log.domain] = (domainSeconds[log.domain] ?? 0) + chunkSec;

@@ -9,7 +9,7 @@ declare global {
       device?: {
         id: string;
         userId: string;
-        platform: 'chrome' | 'windows';
+        platform: 'chrome' | 'windows' | 'android';
       };
     }
   }
@@ -31,7 +31,7 @@ export async function requireDevice(
           })
         : null) ||
         await prisma.device.findFirst({
-          where: { revokedAt: null, user: { email: 'yashpathak086@gmail.com' } },
+          where: { revokedAt: null, user: { email: 'example@gmail.com' } },
           orderBy: { createdAt: 'desc' },
         }) ||
         await prisma.device.findFirst({
@@ -42,7 +42,7 @@ export async function requireDevice(
         req.device = {
           id: devDevice.id,
           userId: devDevice.userId,
-          platform: devDevice.platform as 'chrome' | 'windows',
+          platform: devDevice.platform as 'chrome' | 'windows' | 'android',
         };
         return next();
       }
@@ -61,13 +61,15 @@ export async function requireDevice(
     return next(new AppError(401, 'UNAUTHENTICATED', 'Invalid or revoked device token'));
   }
 
-  // Update lastSeenAt asynchronously
-  prisma.device
-    .update({
+  // Update lastSeenAt
+  try {
+    await prisma.device.update({
       where: { id: device.id },
       data: { lastSeenAt: new Date() },
-    })
-    .catch(() => {});
+    });
+  } catch {
+    // Non-blocking
+  }
 
   req.device = {
     id: device.id,

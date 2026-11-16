@@ -1,5 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
+import { prisma } from '../../lib/prisma.js';
 import { requireAuth } from '../../middleware/requireAuth.js';
+import { requireDevice } from '../../middleware/requireDevice.js';
 import { pairLimiter } from '../../middleware/limiters.js';
 import { validate } from '../../middleware/validate.js';
 import { AppError } from '../../lib/errors.js';
@@ -23,6 +25,54 @@ devicesRouter.post(
     try {
       const result = await devicesService.pairDevice(req.body);
       res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+devicesRouter.post(
+  '/register',
+  pairLimiter,
+  validate({ body: pairDeviceSchema }),
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await devicesService.pairDevice(req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+devicesRouter.post(
+  '/heartbeat',
+  requireDevice,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      res.status(200).json({
+        status: 'ok',
+        deviceId: req.device?.id,
+        serverTime: new Date().toISOString(),
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+devicesRouter.post(
+  '/disconnect',
+  requireDevice,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (req.device?.id) {
+        await prisma.device.update({
+          where: { id: req.device.id },
+          data: { revokedAt: new Date() },
+        });
+      }
+      res.status(200).json({ success: true, message: 'Device disconnected and revoked' });
     } catch (err) {
       next(err);
     }
@@ -63,7 +113,9 @@ devicesRouter.post(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getUserId(req);
-      const result = await devicesService.autoLinkDevice(userId);
+      const deviceName = (req.body?.deviceName as string) || 'Digital Attention Tracker (Chrome)';
+      const platform = (req.body?.platform as 'chrome' | 'windows' | 'android') || 'chrome';
+      const result = await devicesService.autoLinkDevice(userId, deviceName, platform);
       res.status(200).json(result);
     } catch (err) {
       next(err);

@@ -5,9 +5,12 @@ import {
   type SimulateInput,
   type PredictionResult,
 } from '../../api/analytics';
+import { aiApi } from '../../api/ai';
 import { formatDuration, getTodayDateString } from '../../lib/format';
 import { Spinner } from '../../components/ui/Spinner';
+import { HourlyTimelineChart } from '../../components/charts/HourlyTimelineChart';
 import { FocusSummaryWidget } from '../activity/FocusSummaryWidget';
+import { BehavioralRecommendations } from './BehavioralRecommendations';
 import styles from './AnalyticsPage.module.css';
 
 export function AnalyticsPage() {
@@ -61,6 +64,13 @@ export function AnalyticsPage() {
     queryKey: ['analytics', 'daily', selectedDate],
     queryFn: () => analyticsApi.getDaily(selectedDate),
     staleTime: 10_000,
+  });
+
+  // 5. Fetch Model Transparency Specifications (/api/v1/ai/model-info)
+  const { data: modelInfo } = useQuery({
+    queryKey: ['ai', 'model-info'],
+    queryFn: () => aiApi.getModelInfo(),
+    staleTime: 60_000,
   });
 
   // 5. Fetch Summary Overview (/api/v1/analytics/summary)
@@ -293,7 +303,7 @@ export function AnalyticsPage() {
         <div className={styles.summaryCard}>
           <div className={styles.cardHeader}>
             <span className={styles.cardLabel}>Today's Focus Score</span>
-            <div className={styles.cardIcon} style={{ background: '#eff6ff', color: '#2563eb' }}>
+            <div className={styles.cardIcon} style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="12" cy="12" r="10" />
                 <circle cx="12" cy="12" r="6" />
@@ -318,7 +328,7 @@ export function AnalyticsPage() {
         </div>
 
         {/* Card 2: Weekly Average */}
-        <div className={styles.summaryCard}>
+        <div className={`${styles.summaryCard} ${styles.desktopOnlyCard}`}>
           <div className={styles.cardHeader}>
             <span className={styles.cardLabel}>Weekly Average</span>
             <div className={styles.cardIcon} style={{ background: '#f0fdf4', color: '#16a34a' }}>
@@ -474,7 +484,32 @@ export function AnalyticsPage() {
         </div>
       </section>
 
-      {/* 3. Attention Overview & Actionable Insights Section */}
+      {/* 3. Activity Timeline (Hourly Engagement) */}
+      <section className={styles.sectionCard} aria-label="Hourly Activity Timeline">
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            Activity Timeline (Hourly Engagement)
+          </h2>
+          <span className={styles.sectionDesc}>
+            Distribution of active focus minutes and context switches across the day
+          </span>
+        </div>
+        <HourlyTimelineChart
+          patterns={(dailyData?.hourly ?? []).map((h) => ({
+            hour: h.hour,
+            activeSec: h.activeSec,
+            idleSec: h.idleSec,
+            switchCount: h.switchCount,
+            notificationCount: 0,
+          }))}
+        />
+      </section>
+
+      {/* 4. Attention Overview & Actionable Insights Section */}
       <section className={styles.twoColGrid}>
         {/* Left Column: Today's Attention Assessment */}
         <div className={styles.cardSection}>
@@ -549,7 +584,7 @@ export function AnalyticsPage() {
                     {insight.type === 'warning' ? (
                       <span style={{ color: '#d97706' }}>⚠️</span>
                     ) : insight.type === 'tip' ? (
-                      <span style={{ color: '#2563eb' }}>💡</span>
+                      <span style={{ color: 'var(--color-primary)' }}>💡</span>
                     ) : (
                       <span style={{ color: '#16a34a' }}>⭐</span>
                     )}
@@ -561,7 +596,7 @@ export function AnalyticsPage() {
             ) : (
               <li className={styles.insightItem}>
                 <div className={styles.insightHeader}>
-                  <span style={{ color: '#2563eb' }}>💡</span>
+                  <span style={{ color: 'var(--color-primary)' }}>💡</span>
                   <span>Keep Tracking</span>
                 </div>
                 <p className={styles.insightMessage}>
@@ -574,6 +609,9 @@ export function AnalyticsPage() {
           </ul>
         </div>
       </section>
+
+      {/* AI Behavioral Attention Analysis & Personalized Recommendations */}
+      <BehavioralRecommendations />
 
       {/* 4. Optional Prediction Simulator (Collapsible) */}
       <section className={styles.simulatorCard}>
@@ -708,6 +746,108 @@ export function AnalyticsPage() {
           </div>
         )}
       </section>
+
+      {/* Model Transparency & Telemetry Distinctions */}
+      {modelInfo && (
+        <section className={styles.sectionCard} style={{ marginTop: 24 }}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>Model Transparency &amp; Methodology</h2>
+              <p className={styles.sectionDesc}>
+                Open specifications distinguishing deterministic measurements, rule-based heuristics, and probabilistic ML models.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginTop: 16 }}>
+            <div style={{ background: 'var(--bg-subtle, #f8fafc)', padding: 16, borderRadius: 12, border: '1px solid var(--border-subtle, #f1f5f9)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#2563eb', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Attention Regressor
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {modelInfo.regressor.modelName}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                Algorithm: {modelInfo.regressor.algorithm}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Evaluated R²: <strong>{modelInfo.regressor.evaluatedR2}</strong> • Target: {modelInfo.regressor.target}
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-subtle, #f8fafc)', padding: 16, borderRadius: 12, border: '1px solid var(--border-subtle, #f1f5f9)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Distraction Classifier
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {modelInfo.classifier.modelName}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                Algorithm: {modelInfo.classifier.algorithm}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Evaluated Accuracy: <strong>{Math.round(modelInfo.classifier.evaluatedAccuracy * 100)}%</strong> • Version: {modelInfo.classifier.version}
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-subtle, #f8fafc)', padding: 16, borderRadius: 12, border: '1px solid var(--border-subtle, #f1f5f9)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#059669', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Generative AI
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {modelInfo.generativeAi.provider}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+                Status: {modelInfo.generativeAi.status}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                Grounded telemetry briefings, anomaly explanations, and recommendations.
+              </div>
+            </div>
+          </div>
+
+          {modelInfo.distinctions && (
+            <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+              <div style={{ padding: 14, borderRadius: 8, border: '1px solid #bfdbfe', background: '#eff6ff' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#1d4ed8', marginBottom: 6 }}>
+                  📐 Calculated Metrics (Deterministic)
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: '#1e3a8a', lineHeight: 1.5 }}>
+                  {modelInfo.distinctions.calculatedMetrics.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div style={{ padding: 14, borderRadius: 8, border: '1px solid #fde68a', background: '#fffbeb' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#b45309', marginBottom: 6 }}>
+                  ⚙️ Rule-Based Heuristics
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: '#78350f', lineHeight: 1.5 }}>
+                  {modelInfo.distinctions.ruleBasedFindings.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div style={{ padding: 14, borderRadius: 8, border: '1px solid #ddd6fe', background: '#f5f3ff' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#6d28d9', marginBottom: 6 }}>
+                  🤖 ML Inferences (Probabilistic)
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: '#4c1d95', lineHeight: 1.5 }}>
+                  {modelInfo.distinctions.mlPredictions.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 16, fontSize: 12, color: 'var(--text-secondary)', fontStyle: 'italic', borderTop: '1px solid var(--border-subtle, #f1f5f9)', paddingTop: 12 }}>
+            Notice: {modelInfo.transparencyStatement}
+          </div>
+        </section>
+      )}
 
       {/* 5. Small My Focus Box in the bottom-left corner */}
       <FocusSummaryWidget selectedDate={selectedDate} />

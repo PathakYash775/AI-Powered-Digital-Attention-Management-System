@@ -70,9 +70,9 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.35rem 0.75rem;
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 700;
@@ -82,7 +82,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #10b981;
+  background-color: var(--color-primary);
 }
 
 /* Error Alert */
@@ -200,27 +200,27 @@
 }
 
 .badgeGood {
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
 }
 
 .badgeModerate {
-  background-color: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background-color: rgba(217, 130, 43, 0.15);
+  color: var(--chart-communication);
+  border: 1px solid var(--color-border);
 }
 
 .badgeNeedsImprovement {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger);
+  border: 1px solid var(--color-border);
 }
 
 .badgeNoData {
-  background-color: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
 }
 
 /* 2. Weekly Focus Summary */
@@ -288,9 +288,9 @@
 }
 
 .dayColumn.todayColumn {
-  background-color: #eff6ff;
-  border: 1.5px solid #3b82f6;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+  background-color: var(--color-primary-subtle);
+  border: 1.5px solid var(--color-primary);
+  box-shadow: 0 2px 8px var(--color-primary-glow);
 }
 
 .dayName {
@@ -311,7 +311,7 @@
 .verticalBarContainer {
   width: 14px;
   height: 90px;
-  background-color: #e2e8f0;
+  background-color: var(--chart-track);
   border-radius: 7px;
   display: flex;
   flex-direction: column;
@@ -327,15 +327,15 @@
 }
 
 .barFillGood {
-  background-color: #10b981;
+  background-color: var(--color-primary);
 }
 
 .barFillModerate {
-  background-color: #3b82f6;
+  background-color: var(--chart-communication);
 }
 
 .barFillNeedsImprovement {
-  background-color: #f59e0b;
+  background-color: var(--chart-entertainment);
 }
 
 .dayScoreText {
@@ -465,7 +465,7 @@
 .simulatorBody {
   padding: 1.25rem 1.5rem;
   border-top: 1px solid var(--color-border);
-  background-color: #fafbfc;
+  background-color: var(--color-surface-subtle);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -479,7 +479,7 @@
 }
 
 .presetBtn {
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   padding: 0.35rem 0.75rem;
@@ -514,7 +514,7 @@
 }
 
 .simInput {
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
@@ -536,13 +536,13 @@
 }
 
 .simSubmitBtn:hover {
-  background-color: var(--color-primary-hover, #1d4ed8);
+  background-color: var(--color-primary-hover);
 }
 
 .simResultBox {
   padding: 0.85rem 1rem;
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background-color: var(--color-primary-subtle);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -563,5 +563,83 @@
   }
   .twoColGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .headerControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .title {
+    font-size: 1.4rem;
+  }
+  .simSubmitBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .summaryCardsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+  }
+
+  .desktopOnlyCard {
+    display: none !important;
+  }
+
+  .summaryCard {
+    padding: 0.85rem 0.9rem !important;
+  }
+
+  .cardLabel {
+    font-size: 0.68rem !important;
+  }
+
+  .cardValue {
+    font-size: 1.35rem !important;
+  }
+
+  .weeklyCard {
+    padding: 1rem 0.85rem !important;
+  }
+
+  .weeklyDaysGrid {
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 0.2rem !important;
+  }
+
+  .dayColumn {
+    padding: 0.35rem 0.1rem !important;
+  }
+
+  .verticalBarContainer {
+    height: 75px !important;
+  }
+
+  .dayName {
+    font-size: 0.65rem !important;
+  }
+
+  .dayScoreText {
+    font-size: 0.68rem !important;
+  }
+
+  .sectionCard,
+  .cardSection {
+    padding: 1rem !important;
+  }
+
+  .metricRow {
+    padding: 0.55rem 0.75rem !important;
+  }
+
+  .simFormGrid {
+    grid-template-columns: 1fr !important;
   }
 }

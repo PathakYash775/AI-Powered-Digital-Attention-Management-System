@@ -376,7 +376,8 @@ export async function resetDatabase(): Promise<void> {
   const connected = await checkDbConnection();
   if (connected) {
     await prisma.$executeRawUnsafe(`
-      TRUNCATE TABLE "HourlyUsagePattern", "DailyUsageStat", "FocusSession",
+      TRUNCATE TABLE "Task", "AIInsight", "SmartAlert", "Recommendation", "NotificationPreference",
+      "HourlyUsagePattern", "DailyUsageStat", "FocusSession",
       "NotificationEvent", "ContextSwitch", "ActivityLog", "PairingCode",
       "Device", "Goal", "RefreshToken", "Profile", "User" CASCADE;
     `);
@@ -430,7 +431,7 @@ export async function createTestUser(
 export async function createTestDevice(
   userId: string,
   name = 'Test Chrome',
-  platform: 'chrome' | 'windows' = 'chrome',
+  platform: 'chrome' | 'windows' | 'android' = 'chrome',
 ) {
   const rawToken = 'atn_' + crypto.randomBytes(32).toString('base64url');
   const tokenHash = hashToken(rawToken);

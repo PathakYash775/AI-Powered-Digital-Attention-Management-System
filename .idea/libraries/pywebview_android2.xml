@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="pywebview-android2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/desktop-app/.venv/Lib/site-packages/webview/lib/pywebview-android.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

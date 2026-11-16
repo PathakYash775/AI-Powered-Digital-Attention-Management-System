@@ -63,7 +63,9 @@ export const ingestService = {
       const endedAt = new Date(e.endedAt);
       const durationSec = Math.round((endedAt.getTime() - startedAt.getTime()) / 1000);
       const isDesktop = e.source === 'desktop';
-      const category = isDesktop
+      const isMobile = e.source === 'mobile';
+      const isApp = isDesktop || isMobile;
+      const category = isApp
         ? matchAppCategory(e.app, categories)
         : matchDomainCategory(e.domain, categories);
 
@@ -71,9 +73,9 @@ export const ingestService = {
         userId,
         deviceId,
         clientEventId: e.clientEventId,
-        source: isDesktop ? ('desktop' as const) : ('browser' as const),
-        domain: isDesktop ? null : e.domain,
-        appName: isDesktop ? e.app.toLowerCase() : null,
+        source: isMobile ? ('mobile' as const) : isDesktop ? ('desktop' as const) : ('browser' as const),
+        domain: isApp ? null : e.domain,
+        appName: isApp ? e.app.toLowerCase() : null,
         category,
         startedAt,
         endedAt,

@@ -1,0 +1,82 @@
+.bottomBar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(58px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--color-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-border);
+  z-index: 1000;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 0 4px 0;
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  border-radius: var(--radius-md);
+  transition: color 0.15s ease, transform 0.1s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border-radius: 14px;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.navItem:active {
+  transform: scale(0.95);
+}
+
+.navItem.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.navItem.active .iconWrapper {
+  background-color: var(--color-primary-subtle);
+}
+
+.navItem.active svg {
+  stroke: var(--color-primary);
+  filter: drop-shadow(0 0 6px var(--color-primary-glow));
+}
+
+.navLabel {
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .bottomBar {
+    display: flex;
+  }
+}

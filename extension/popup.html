@@ -5,120 +5,321 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Digital Attention Tracker</title>
   <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --danger-bg: #fef2f2;
+    }
     body {
       width: 320px;
       margin: 0;
-      padding: 18px;
+      padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #0f172a;
-      background: #ffffff;
+      color: var(--text);
+      background: var(--bg);
       box-sizing: border-box;
     }
-    h1 {
-      font-size: 16px;
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-icon {
+      font-size: 20px;
+    }
+    .header-title {
+      font-size: 15px;
       font-weight: 700;
-      margin: 0 0 8px;
-      color: #0284c7;
-      display: flex;
+      color: var(--primary);
+      margin: 0;
+      line-height: 1.2;
+    }
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    .status-badge {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-    }
-    p {
-      font-size: 13px;
-      line-height: 1.45;
-      color: #475569;
-      margin: 0 0 12px;
-    }
-    #status {
-      padding: 10px 12px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 600;
-      font-size: 13px;
-      margin: 12px 0 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .status-badge.connected {
+      background: var(--success-bg);
+      border-color: #bbf7d0;
+      color: var(--success);
+    }
+    .status-badge.disconnected {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #475569;
     }
     .dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #94a3b8;
     }
     .dot.on {
-      background: #22c55e;
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
     }
-    button {
-      width: 100%;
-      padding: 10px 14px;
-      border: 0;
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      color: #ffffff;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 4px 0;
+      color: #334155;
+    }
+    .info-label {
+      color: var(--text-muted);
+    }
+    .info-value {
       font-weight: 600;
+    }
+    .input-group {
+      margin-bottom: 12px;
+    }
+    .input-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-family: monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+    .btn {
+      width: 100%;
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 6px;
       font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
-      background: #0284c7;
+      background: var(--primary);
+      color: #ffffff;
       transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 8px;
     }
-    button:hover {
-      background: #0369a1;
+    .btn:hover {
+      background: var(--primary-hover);
     }
-    button.stop {
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+    .btn-danger:hover {
+      background: var(--danger-bg);
+      border-color: #fca5a5;
+    }
+    .btn.stop {
       background: #e11d48;
     }
-    button.stop:hover {
+    .btn.stop:hover {
       background: #be123c;
     }
-    .small {
+    .notice {
       font-size: 11px;
-      color: #64748b;
-      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
       line-height: 1.4;
     }
-    #api-status {
-      font-family: monospace;
+    .notice-error {
+      background: var(--danger-bg);
+      border: 1px solid #fecaca;
+      color: var(--danger);
+    }
+    .notice-success {
+      background: var(--success-bg);
+      border: 1px solid #bbf7d0;
+      color: var(--success);
+    }
+    .instructions-box {
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 10px;
       font-size: 11px;
-      color: #0284c7;
-      background: #f0f9ff;
-      padding: 5px 8px;
-      border-radius: 4px;
-      border: 1px solid #bae6fd;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .instructions-box ol {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+    .privacy-text {
+      font-size: 10.5px;
+      color: #94a3b8;
+      line-height: 1.4;
       margin-top: 10px;
       text-align: center;
     }
     .dashboard-link {
       display: block;
       text-align: center;
-      margin-top: 14px;
       font-size: 12px;
       font-weight: 600;
-      color: #0284c7;
+      color: var(--primary);
       text-decoration: none;
+      padding: 6px 0;
     }
     .dashboard-link:hover {
       text-decoration: underline;
     }
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <h1><span>🎯</span> Digital Attention Tracker</h1>
-  <p>Records the active website and time spent while focused. Events are saved directly to your PostgreSQL database.</p>
-  
-  <div id="status">
-    <span class="dot" id="status-dot"></span>
-    <span id="status-text">Checking…</span>
+  <!-- Header -->
+  <div class="header">
+    <span class="header-icon">🎯</span>
+    <div>
+      <h1 class="header-title">Digital Attention</h1>
+      <p class="header-subtitle">Chrome Companion Extension</p>
+    </div>
   </div>
 
-  <button id="toggle">Start tracking</button>
+  <!-- DISCONNECTED / UNPAIRED VIEW -->
+  <div id="unpaired-view">
+    <div class="status-badge disconnected">
+      <span class="dot"></span>
+      <span>Device: Not Connected</span>
+    </div>
 
-  <p class="small">Privacy: Tracking is opt-in. No keystrokes, passwords, screenshots, or private messages are ever collected.</p>
-  
-  <div id="api-status">Connecting to local API…</div>
-  
-  <a href="http://localhost:5173" target="_blank" class="dashboard-link">Open Attention Dashboard →</a>
+    <div id="pair-error" class="notice notice-error hidden"></div>
+
+    <div class="input-group">
+      <label class="input-label" for="pairing-code-input">8-Character Pairing Code</label>
+      <input
+        type="text"
+        id="pairing-code-input"
+        class="input-field"
+        maxlength="8"
+        placeholder="ABC23XYZ"
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+
+    <button id="pair-btn" class="btn" type="button">Connect Extension</button>
+
+    <div class="instructions-box">
+      <strong>How to get your pairing code:</strong>
+      <ol>
+        <li>Log into the Web Dashboard.</li>
+        <li>Go to <strong>Settings &amp; Devices</strong>.</li>
+        <li>Click <strong>Pair Windows Tracker / Extension</strong>.</li>
+        <li>Paste the 8-character code above.</li>
+      </ol>
+    </div>
+
+    <a href="http://localhost:5173" target="_blank" class="dashboard-link">Open Attention Dashboard →</a>
+  </div>
+
+  <!-- CONNECTED / PAIRED VIEW -->
+  <div id="paired-view" class="hidden">
+    <div class="status-badge connected">
+      <span class="dot on"></span>
+      <span>Connected &amp; Active</span>
+    </div>
+
+    <div id="sync-notice" class="notice notice-success hidden"></div>
+
+    <div class="card">
+      <div class="info-row">
+        <span class="info-label">Device Name:</span>
+        <span class="info-value" id="device-name-display">Chrome Extension</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Status:</span>
+        <span class="info-value" id="tracking-status-badge" style="color: var(--success);">Monitoring</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Last Heartbeat:</span>
+        <span class="info-value" id="last-heartbeat-display">Just now</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Synced Today:</span>
+        <span class="info-value" id="synced-today-display">0 events</span>
+      </div>
+    </div>
+
+    <button id="toggle-tracking-btn" class="btn" type="button">Pause tracking</button>
+    <button id="sync-now-btn" class="btn btn-secondary" type="button">🔄 Sync Heartbeat Now</button>
+    <a href="http://localhost:5173" target="_blank" class="dashboard-link">Open Attention Dashboard →</a>
+    <button id="disconnect-btn" class="btn btn-danger" type="button">Disconnect Extension</button>
+  </div>
+
+  <p class="privacy-text">
+    🔒 Opt-in focus tracking. Passwords, keystrokes, form fields, and messages are never collected.
+  </p>
 
   <script src="popup.js"></script>
 </body>

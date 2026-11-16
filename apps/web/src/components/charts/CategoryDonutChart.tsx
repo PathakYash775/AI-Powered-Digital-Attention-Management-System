@@ -18,28 +18,28 @@ const CATEGORY_CONFIG: Record<
 > = {
   productive: {
     label: 'Productive Work',
-    color: '#10b981',
-    gradient: 'linear-gradient(135deg, #10b981, #059669)',
+    color: 'var(--chart-productive)',
+    gradient: 'var(--chart-productive)',
   },
   communication: {
     label: 'Communication',
-    color: '#6366f1',
-    gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+    color: 'var(--chart-communication)',
+    gradient: 'var(--chart-communication)',
   },
   entertainment: {
     label: 'Entertainment',
-    color: '#f59e0b',
-    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    color: 'var(--chart-entertainment)',
+    gradient: 'var(--chart-entertainment)',
   },
   social: {
     label: 'Social & Media',
-    color: '#ec4899',
-    gradient: 'linear-gradient(135deg, #ec4899, #db2777)',
+    color: 'var(--chart-social)',
+    gradient: 'var(--chart-social)',
   },
   other: {
     label: 'Other & Utility',
-    color: '#94a3b8',
-    gradient: 'linear-gradient(135deg, #94a3b8, #64748b)',
+    color: 'var(--chart-other)',
+    gradient: 'var(--chart-other)',
   },
 };
 
@@ -115,7 +115,7 @@ export function CategoryDonutChart({ categories, totalSec }: CategoryDonutChartP
             cy="90"
             r={radius}
             fill="none"
-            stroke="var(--color-neutral-subtle)"
+            stroke="var(--chart-track)"
             strokeWidth="18"
           />
           {arcs.map((arc) => (

@@ -16,7 +16,7 @@ export const ingestRouter = Router();
 ingestRouter.use(requireDevice);
 ingestRouter.use(ingestLimiter);
 
-function getDevice(req: Request): { id: string; userId: string; platform: 'chrome' | 'windows' } {
+function getDevice(req: Request): { id: string; userId: string; platform: 'chrome' | 'windows' | 'android' } {
   if (!req.device) {
     throw new AppError(401, 'UNAUTHENTICATED', 'Missing or invalid device credentials');
   }
@@ -38,6 +38,9 @@ ingestRouter.post(
         }
         if (device.platform === 'chrome' && source !== 'browser') {
           throw new AppError(400, 'VALIDATION_ERROR', 'A chrome device may send only source browser');
+        }
+        if (device.platform === 'android' && source !== 'mobile') {
+          throw new AppError(400, 'VALIDATION_ERROR', 'An android device may send only source mobile');
         }
       }
 

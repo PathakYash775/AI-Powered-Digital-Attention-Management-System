@@ -15,11 +15,11 @@
   align-items: center;
   gap: 0.65rem;
   padding: 0.65rem 1.05rem;
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   color: var(--color-text);
   border: 1.5px solid var(--color-primary);
   border-radius: var(--radius-lg);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.2), 0 2px 6px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
@@ -27,9 +27,9 @@
 
 
 .triggerButton:hover {
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   border-color: var(--color-primary);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.15), 0 2px 6px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
@@ -39,21 +39,21 @@
 
 .triggerButton.isOpen {
   border-color: var(--color-primary);
-  background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background-color: var(--color-surface);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
 }
 
 .iconWrapper {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--color-primary-contrast);
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 6px var(--color-primary-glow);
 }
 
 .iconSvg {
@@ -116,11 +116,11 @@
   max-width: calc(100vw - 2rem);
   max-height: min(620px, calc(100vh - 6rem));
   z-index: 10000;
-  background-color: #ffffff;
+  background-color: var(--color-surface);
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -144,7 +144,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #ffffff;
+  background-color: var(--color-surface);
 }
 
 .panelTitleGroup {
@@ -274,27 +274,27 @@
 }
 
 .statusGood {
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .statusModerate {
-  background-color: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .statusNeedsImprovement {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
 }
 
 .statusNoData {
-  background-color: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
 }
 
 /* Metrics Grid */
@@ -305,7 +305,7 @@
 }
 
 .metricTile {
-  background-color: #ffffff;
+  background-color: var(--color-surface-subtle);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.65rem 0.75rem;
@@ -387,7 +387,7 @@
 
 .weeklyDayRow.todayRow {
   background-color: var(--color-primary-subtle);
-  border: 1px solid #bfdbfe;
+  border: 1px solid var(--color-primary);
   font-weight: 600;
 }
 
@@ -409,7 +409,7 @@
   padding: 0.1rem 0.35rem;
   border-radius: 9999px;
   background-color: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-primary-contrast);
 }
 
 .dayBarTrack {
@@ -429,15 +429,15 @@
 }
 
 .dayBarFillGood {
-  background-color: #10b981;
+  background-color: var(--color-primary);
 }
 
 .dayBarFillModerate {
-  background-color: #3b82f6;
+  background-color: var(--chart-communication);
 }
 
 .dayBarFillLow {
-  background-color: #f59e0b;
+  background-color: var(--chart-entertainment);
 }
 
 .dayScoreLabel {
@@ -454,16 +454,20 @@
   font-size: 0.72rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 900px) {
-  .triggerButton {
-    left: 1rem;
-    bottom: 1rem;
+/* Responsive adjustments: Hide floating widget on mobile completely so it NEVER covers the bottom bar */
+@media (max-width: 768px) {
+  .container {
+    display: none !important;
   }
+}
 
-  .panel {
-    left: 1rem;
-    bottom: 4.4rem;
-    width: calc(100vw - 2rem);
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

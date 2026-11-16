@@ -78,6 +78,20 @@ focusRouter.patch(
   },
 );
 
+// GET /api/v1/focus-sessions/planner
+focusRouter.get(
+  '/planner',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getUserId(req);
+      const plan = await focusService.getSmartPlan(userId);
+      res.status(200).json(plan);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 focusRouter.get(
   '/active',
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {

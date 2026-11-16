@@ -162,4 +162,75 @@ describe('Auth Feature', () => {
 
     expect(await screen.findByText('Protected Content Loaded')).toBeInTheDocument();
   });
+
+  it('restores token and permits recommendations API call', async () => {
+    server.use(
+      http.get('*/analytics/focus-score', ({ request }) => {
+        const auth = request.headers.get('Authorization');
+        if (auth === 'Bearer valid-restored-token') {
+          return HttpResponse.json({
+            focusScore: 85,
+            rating: 'Good',
+            recommendation: 'Steady flow state achieved.',
+          });
+        }
+        return HttpResponse.json(
+          { error: { code: 'UNAUTHENTICATED', message: 'Invalid or expired access token' } },
+          { status: 401 },
+        );
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/protected']}>
+        <AuthProvider>
+          <Routes>
+            <Route
+              path="/protected"
+              element={
+                <ProtectedRoute>
+                  <div>Recommendations Accessible</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Recommendations Accessible')).toBeInTheDocument();
+  });
+
+  it('handles expired token cleanly without leaving corrupt auth state', async () => {
+    localStorage.setItem('atn_access_token', 'stale-expired-token');
+    server.use(
+      http.post('*/auth/refresh', () => {
+        return HttpResponse.json(
+          { error: { code: 'UNAUTHENTICATED', message: 'Refresh token expired' } },
+          { status: 401 },
+        );
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/protected']}>
+        <AuthProvider>
+          <Routes>
+            <Route
+              path="/protected"
+              element={
+                <ProtectedRoute>
+                  <div>Should Not Render</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/login" element={<div>Redirected To Login</div>} />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Redirected To Login')).toBeInTheDocument();
+    expect(screen.queryByText('Should Not Render')).not.toBeInTheDocument();
+  });
 });

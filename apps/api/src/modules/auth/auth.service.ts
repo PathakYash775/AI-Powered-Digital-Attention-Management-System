@@ -37,6 +37,7 @@ export const authService = {
         data: {
           email,
           passwordHash,
+          role: 'user',
           profile: {
             create: {
               displayName: input.displayName.trim(),
@@ -60,11 +61,11 @@ export const authService = {
       },
     });
 
-    const accessToken = await generateAccessToken(user.id);
+    const accessToken = await generateAccessToken(user.id, (user as any).role || 'user');
 
     return {
       accessToken,
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, role: (user as any).role || 'user' },
       refreshToken: rawRefreshToken,
     };
   },
@@ -88,6 +89,30 @@ export const authService = {
       throw new AppError(401, 'UNAUTHENTICATED', 'Invalid email or password');
     }
 
+    if ((user as any).isActive === false) {
+      logger.warn({ email, userId: user.id }, 'Login failure: account deactivated');
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'This account has been deactivated by an administrator. Please contact platform support.',
+      );
+    }
+
+    const chosenRole = input.intendedRole || input.selectedRole;
+    const dbRole = (user as any).role || 'user';
+
+    if (chosenRole) {
+      if (chosenRole === 'admin' && dbRole !== 'admin') {
+        logger.warn({ email, chosenRole, dbRole }, 'Role mismatch: user attempted admin login');
+        throw new AppError(
+          403,
+          'FORBIDDEN',
+          'You selected Admin Login, but this account is not registered as an administrator.',
+        );
+      }
+      // Admins are full users with elevated privileges and can log in under both User and Admin modes
+    }
+
     const rawRefreshToken = generateRefreshToken();
     const tokenHash = hashToken(rawRefreshToken);
     const familyId = crypto.randomUUID();
@@ -101,11 +126,11 @@ export const authService = {
       },
     });
 
-    const accessToken = await generateAccessToken(user.id);
+    const accessToken = await generateAccessToken(user.id, dbRole);
 
     return {
       accessToken,
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, role: dbRole },
       refreshToken: rawRefreshToken,
     };
   },
@@ -160,11 +185,23 @@ export const authService = {
       }),
     ]);
 
-    const accessToken = await generateAccessToken(storedToken.userId);
+    const user = await prisma.user.findUnique({
+      where: { id: storedToken.userId },
+      select: { id: true, email: true, role: true, isActive: true },
+    });
+
+    if (!user || (user as any).isActive === false) {
+      throw new AppError(401, 'UNAUTHENTICATED', 'Account is invalid or deactivated');
+    }
+
+    const userRole = (user as any)?.role || 'user';
+
+    const accessToken = await generateAccessToken(storedToken.userId, userRole);
 
     return {
       accessToken,
       refreshToken: newRawRefreshToken,
+      user: user ? { id: user.id, email: user.email, role: userRole } : undefined,
     };
   },
 

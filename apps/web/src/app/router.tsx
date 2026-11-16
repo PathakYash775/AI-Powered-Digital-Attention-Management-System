@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './AppLayout';
 import { ProtectedRoute } from './ProtectedRoute';
+import { AdminRoute } from './AdminRoute';
 import { Spinner } from '../components/ui/Spinner';
 
 const LoginPage = lazy(() =>
@@ -25,8 +26,33 @@ const GoalsPage = lazy(() =>
 const ProfilePage = lazy(() =>
   import('../features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })),
 );
+const DevicesPage = lazy(() =>
+  import('../features/devices/DevicesPage').then((m) => ({ default: m.DevicesPage })),
+);
 const AnalyticsPage = lazy(() =>
   import('../features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
+);
+const TasksPage = lazy(() =>
+  import('../features/tasks/TasksPage').then((m) => ({ default: m.TasksPage })),
+);
+const RecommendationsPage = lazy(() =>
+  import('../features/recommendations/RecommendationsPage').then((m) => ({ default: m.RecommendationsPage })),
+);
+
+const AdminLayout = lazy(() =>
+  import('../features/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })),
+);
+const AdminOverviewPage = lazy(() =>
+  import('../features/admin/AdminOverviewPage').then((m) => ({ default: m.AdminOverviewPage })),
+);
+const AdminUsersPage = lazy(() =>
+  import('../features/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
+);
+const AdminCategoriesPage = lazy(() =>
+  import('../features/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })),
+);
+const AdminSystemPage = lazy(() =>
+  import('../features/admin/AdminSystemPage').then((m) => ({ default: m.AdminSystemPage })),
 );
 
 export function AppRouter() {
@@ -50,7 +76,23 @@ export function AppRouter() {
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/focus" element={<FocusPage />} />
             <Route path="/goals" element={<GoalsPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/recommendations" element={<RecommendationsPage />} />
+            <Route path="/devices" element={<DevicesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+
+          <Route
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route path="/admin" element={<AdminOverviewPage />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+            <Route path="/admin/system" element={<AdminSystemPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

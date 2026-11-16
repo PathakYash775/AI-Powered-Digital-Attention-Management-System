@@ -5,15 +5,17 @@
   flex-wrap: wrap;
   gap: var(--space-6);
   padding: var(--space-2) 0;
+  width: 100%;
 }
 
 .chartArea {
   position: relative;
-  width: 190px;
-  height: 190px;
+  width: 180px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .svg {
@@ -38,46 +40,52 @@
 
 .centerPercent {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.1;
   color: var(--color-text);
   letter-spacing: -0.02em;
 }
 
 .centerSub {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-success);
+  color: var(--color-primary);
 }
 
 .legend {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0.5rem;
   flex: 1;
-  min-width: 220px;
+  min-width: 200px;
 }
 
 .legendItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-2) var(--space-3);
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-md);
-  background-color: var(--color-neutral-subtle);
-  transition: background-color 0.2s ease;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  font-size: 0.82rem;
+  gap: 0.5rem;
 }
 
 .legendItem:hover {
-  background-color: var(--color-border);
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
 }
 
 .legendHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .dot {
@@ -88,20 +96,51 @@
 }
 
 .legendLabel {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .legendPercent {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .legendDuration {
-  font-size: 0.8125rem;
+  color: var(--color-text-muted);
   font-weight: 600;
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .wrapper {
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0;
+  }
+
+  .chartArea {
+    width: 155px;
+    height: 155px;
+  }
+
+  .centerPercent {
+    font-size: 1.5rem;
+  }
+
+  .legend {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .legendItem {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.78rem;
+  }
 }

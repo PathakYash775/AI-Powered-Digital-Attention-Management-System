@@ -30,7 +30,14 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #f59e0b;
+  background-color: var(--chart-communication);
+}
+
+.scrollWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .barsContainer {
@@ -41,6 +48,7 @@
   height: 180px;
   padding-top: var(--space-6);
   border-bottom: 1px solid var(--color-border);
+  width: 100%;
 }
 
 .barColumn {
@@ -51,11 +59,12 @@
   height: 100%;
   position: relative;
   cursor: pointer;
+  min-width: 24px;
 }
 
 .barColumn:hover .barFill {
   background-color: var(--color-primary-hover);
-  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 0 10px var(--color-primary-glow);
 }
 
 .switchBadge {
@@ -65,16 +74,16 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 999px;
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: var(--color-surface-subtle);
+  color: var(--chart-communication);
+  border: 1px solid var(--color-border);
 }
 
 .barTrack {
   width: 100%;
   max-width: 28px;
   height: 140px;
-  background-color: var(--color-neutral-subtle);
+  background-color: var(--chart-track);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   display: flex;
   align-items: flex-end;
@@ -83,9 +92,9 @@
 
 .barFill {
   width: 100%;
-  background: linear-gradient(180deg, var(--color-primary), #1d4ed8);
+  background-color: var(--color-primary);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
 }
 
 .hourLabel {
@@ -93,11 +102,17 @@
   font-size: 0.6875rem;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .footerNote {
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  text-align: right;
-  font-style: italic;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .barsContainer {
+    min-width: 440px;
+  }
 }

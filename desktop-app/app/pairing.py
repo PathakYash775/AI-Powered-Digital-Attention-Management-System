@@ -89,6 +89,35 @@ def clear_device_token() -> None:
         logger.error(f"Failed to delete token file: {e}")
 
 
+def disconnect_device(api_base_url: str, token: Optional[str] = None) -> bool:
+    """Notify backend to revoke device and clear local credentials."""
+    if not token:
+        token = get_stored_device_token()
+
+    if token:
+        base = api_base_url.rstrip("/")
+        if base.endswith("/api/v1"):
+            base = base[:-7]
+        url = f"{base}/api/v1/devices/disconnect"
+        req = urllib.request.Request(
+            url,
+            data=b"{}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=5):
+                logger.info("Successfully notified backend of device disconnect.")
+        except Exception as e:
+            logger.debug(f"Device disconnect remote notification skipped: {e}")
+
+    clear_device_token()
+    return True
+
+
 def pair_device(api_base_url: str, pairing_code: str, device_name: Optional[str] = None) -> Tuple[bool, str]:
     """
     Exchange pairing code with backend for a device token.

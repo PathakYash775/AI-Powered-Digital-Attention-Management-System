@@ -82,19 +82,42 @@ class DesktopAppJsApi:
         }
 
     def unpair(self) -> dict:
-        """Clear device token from memory and disk, pause tracking."""
+        """Clear device token from backend, memory and disk, pause tracking."""
+        token = self._shell.config.device_token
         self._shell.config.device_token = None
-        from app.pairing import TOKEN_FILE
-        try:
-            if TOKEN_FILE.exists():
-                TOKEN_FILE.unlink()
-            import keyring
-            keyring.delete_password("AttentionTracker", "device_token")
-        except Exception:
-            pass
+        from app.pairing import disconnect_device
+        disconnect_device(self._shell.config.api_base_url, token)
         if self._shell.engine:
             self._shell.engine.pause()
         return {"success": True}
+
+    def get_autostart_status(self) -> dict:
+        """Check whether autostart is enabled in Windows Registry."""
+        return {"enabled": is_autostart_enabled()}
+
+    def set_autostart_status(self, enabled: bool) -> dict:
+        """Enable or disable autostart in Windows Registry."""
+        ok = set_autostart(enable=enabled)
+        return {"success": ok, "enabled": is_autostart_enabled()}
+
+    def get_status(self) -> dict:
+        """Return comprehensive tracker operational status."""
+        engine_status = self._shell.engine.status() if self._shell.engine else {
+            "running": False,
+            "paused": True,
+            "paired": bool(self._shell.config.device_token),
+        }
+        return {
+            **engine_status,
+            "autostartEnabled": is_autostart_enabled(),
+            "deviceTokenConfigured": bool(self._shell.config.device_token),
+        }
+
+    def toggle_tracking(self) -> dict:
+        """Toggle background tracking between paused and active."""
+        self._shell.toggle_tracking()
+        is_paused = self._shell.engine.is_paused if self._shell.engine else True
+        return {"trackingActive": not is_paused}
 
 
 class AttentionDesktopApp:

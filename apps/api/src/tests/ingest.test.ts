@@ -161,6 +161,76 @@ describe('Ingest Module', () => {
       .send({ events: [desktopEvent] });
     expect(chromeRes.status).toBe(400);
     expect(chromeRes.body.error.code).toBe('VALIDATION_ERROR');
+
+    // Android device sending browser event -> 400
+    const { token: androidToken } = await createTestDevice(user.id, 'Android Dev', 'android');
+    const androidRes = await request(app)
+      .post('/api/v1/ingest/activity')
+      .set('Authorization', `Bearer ${androidToken}`)
+      .send({ events: [browserEvent] });
+    expect(androidRes.status).toBe(400);
+    expect(androidRes.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('valid mobile batch inserts, assigns app category, and handles duplicate clientEventId safely', async () => {
+    const { user } = await createTestUser('mobileuser@example.com', 'Password123!', 'Mobile User');
+    const { token: androidToken } = await createTestDevice(user.id, 'Pixel 8', 'android');
+
+    const now = Date.now();
+    const event1 = {
+      clientEventId: 'evt-mob-1',
+      source: 'mobile',
+      app: 'whatsapp',
+      startedAt: new Date(now - 120000).toISOString(),
+      endedAt: new Date(now - 60000).toISOString(),
+      idle: false,
+    };
+    const event2 = {
+      clientEventId: 'evt-mob-2',
+      source: 'mobile',
+      app: 'spotify',
+      startedAt: new Date(now - 60000).toISOString(),
+      endedAt: new Date(now).toISOString(),
+      idle: false,
+    };
+
+    const firstRes = await request(app)
+      .post('/api/v1/ingest/activity')
+      .set('Authorization', `Bearer ${androidToken}`)
+      .send({ events: [event1, event2] });
+
+    expect(firstRes.status).toBe(200);
+    expect(firstRes.body).toEqual({
+      received: 2,
+      inserted: 2,
+      duplicates: 0,
+    });
+
+    const logs = await prisma.activityLog.findMany({
+      where: { userId: user.id },
+    });
+    expect(logs).toHaveLength(2);
+
+    const whatsappLog = logs.find((l) => l.clientEventId === 'evt-mob-1');
+    expect(whatsappLog).toBeDefined();
+    expect(whatsappLog?.source).toBe('mobile');
+    expect(whatsappLog?.appName).toBe('whatsapp');
+    expect(whatsappLog?.domain).toBeNull();
+    expect(whatsappLog?.category).toBe('communication');
+    expect(whatsappLog?.durationSec).toBe(60);
+
+    // Duplicate submission
+    const secondRes = await request(app)
+      .post('/api/v1/ingest/activity')
+      .set('Authorization', `Bearer ${androidToken}`)
+      .send({ events: [event1, event2] });
+
+    expect(secondRes.status).toBe(200);
+    expect(secondRes.body).toEqual({
+      received: 2,
+      inserted: 0,
+      duplicates: 2,
+    });
   });
 
   it('validates desktop app name format according to regex', async () => {

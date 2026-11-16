@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   useActivityNotifications,
@@ -10,6 +10,7 @@ import { devicesApi } from '../../api/devices';
 import { formatDateTime, formatDuration, getTodayDateString, formatAppName, parseAppDetail } from '../../lib/format';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
+import { AppTypeIcon } from '../../components/ui/AppTypeIcon';
 import styles from './ActivityPage.module.css';
 
 type DetailTab = 'sessions' | 'switches' | 'notifications';
@@ -20,6 +21,7 @@ export function ActivityPage() {
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [activeTab, setActiveTab] = useState<DetailTab>('sessions');
   const [viewMode, setViewMode] = useState<ViewMode>('summary');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Fetch telemetry report for selected date
   const { data: report, refetch: refetchReport } = useActivityReport(selectedDate);
@@ -31,10 +33,13 @@ export function ActivityPage() {
   });
 
   // Fetch paginated sessions, switches, and notifications
-  const filter = {
-    from: selectedDate,
-    to: selectedDate,
-  };
+  const filter = useMemo(
+    () => ({
+      from: selectedDate,
+      to: selectedDate,
+    }),
+    [selectedDate],
+  );
 
   const sessionsQuery = useActivitySessions(filter);
   const switchesQuery = useTaskSwitches(filter);
@@ -43,6 +48,11 @@ export function ActivityPage() {
   const allSessions = sessionsQuery.data?.pages.flatMap((p) => p.items) ?? [];
   const allSwitches = switchesQuery.data?.pages.flatMap((p) => p.items) ?? [];
   const allNotifs = notificationsQuery.data?.pages.flatMap((p) => p.items) ?? [];
+
+  const filteredSessions = useMemo(() => {
+    if (categoryFilter === 'all') return allSessions;
+    return allSessions.filter((s) => (s.category || '').toLowerCase() === categoryFilter);
+  }, [allSessions, categoryFilter]);
 
   const handleRefresh = async () => {
     await Promise.all([
@@ -350,7 +360,7 @@ export function ActivityPage() {
             onClick={() => setActiveTab('sessions')}
           >
             <span>Application Sessions</span>
-            <span className={styles.tabCountBadge}>{allSessions.length}</span>
+            <span className={styles.tabCountBadge}>{filteredSessions.length}</span>
           </button>
           <button
             type="button"
@@ -371,20 +381,121 @@ export function ActivityPage() {
         </nav>
 
         {activeTab === 'sessions' && (
+          <div className={styles.categoryFiltersStrip}>
+            {['all', 'productive', 'communication', 'entertainment', 'social', 'other'].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={`${styles.categoryFilterChip} ${categoryFilter === cat ? styles.activeFilterChip : ''}`}
+                onClick={() => setCategoryFilter(cat)}
+              >
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'sessions' && (
           <div className={styles.tableContainer}>
             {sessionsQuery.isLoading ? (
               <div style={{ padding: '2rem' }}>
                 <Spinner label="Loading application sessions..." />
               </div>
-            ) : allSessions.length === 0 ? (
-              <div className={styles.emptyStateContainer} style={{ padding: '2.5rem' }}>
-                <p className={styles.emptyStateSubtitle}>
-                  No application session intervals recorded for this date.
-                </p>
+            ) : filteredSessions.length === 0 ? (
+              <div className={styles.emptyStateContainer} style={{ padding: '2.5rem', textAlign: 'center' }}>
+                <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    background: 'rgba(139, 92, 246, 0.12)',
+                    color: '#8b5cf6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1rem',
+                  }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                  </div>
+                  <h4 style={{ margin: '0 0 0.5rem', fontSize: '1.05rem', fontWeight: 600, color: 'var(--color-text-main, #f8f7ff)' }}>
+                    No Telemetry Sessions on {selectedDate}
+                  </h4>
+                  <p className={styles.emptyStateSubtitle} style={{ marginBottom: '1.25rem', fontSize: '0.875rem' }}>
+                    {selectedDate === today
+                      ? 'No foreground application intervals recorded yet for today. Telemetry agent syncs intervals as you work.'
+                      : `No application session intervals were recorded on ${selectedDate}. Jump to an active tracking day below:`}
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {selectedDate !== today && (
+                      <Button
+                        variant="primary"
+                        onClick={() => setSelectedDate(today)}
+                      >
+                        Jump to Today ({today})
+                      </Button>
+                    )}
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSelectedDate('2026-11-13')}
+                    >
+                      View Nov 13 Telemetry
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSelectedDate('2026-11-12')}
+                    >
+                      View Nov 12 Telemetry
+                    </Button>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
-                <table className={styles.table}>
+                {/* Mobile Application Usage Cards (Touch-Friendly List) */}
+                <div className={styles.mobileSessionsList}>
+                  {filteredSessions.map((s) => {
+                    const displayName = s.appName || (s.domain ? formatAppName(s.domain) : 'Unknown Application');
+                    const isDesktop = s.source === 'desktop' || (!s.domain && Boolean(s.appName)) || s.device?.platform === 'windows';
+                    const isProductive = s.category === 'productive';
+
+                    return (
+                      <div key={s.id} className={styles.mobileSessionCard}>
+                        <div className={styles.mobileSessionHeader}>
+                          <div className={styles.mobileSessionAppInfo}>
+                            <AppTypeIcon name={displayName} domain={s.domain} category={s.category} size={22} />
+                            <div className={styles.mobileSessionNameGroup}>
+                              <span className={styles.mobileSessionTitle}>{displayName}</span>
+                              <span className={styles.mobileSessionPlatform}>
+                                {s.domain || (isDesktop ? 'Windows App' : 'Web')}
+                              </span>
+                            </div>
+                          </div>
+                          <span className={styles.mobileSessionDuration}>{formatDuration(s.durationSec)}</span>
+                        </div>
+
+                        <div className={styles.mobileSessionFooter}>
+                          <div className={styles.mobileSessionBadges}>
+                            <span className={`${styles.categoryTag} ${styles[s.category] || styles.other}`}>
+                              {s.category}
+                            </span>
+                            <span className={isProductive ? styles.productiveTag : styles.distractingTag}>
+                              {isProductive ? '✓ Productive' : '⚠️ Distracting'}
+                            </span>
+                          </div>
+                          <span className={styles.mobileSessionTime}>{formatDateTime(s.startedAt)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop Table */}
+                <table className={`${styles.table} ${styles.desktopTable}`}>
                   <thead>
                     <tr>
                       <th>Application / Domain</th>
@@ -394,7 +505,7 @@ export function ActivityPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {allSessions.map((s) => {
+                    {filteredSessions.map((s) => {
                       const displayName = s.appName || (s.domain ? formatAppName(s.domain) : 'Unknown Application');
                       const isDesktop = s.source === 'desktop' || (!s.domain && Boolean(s.appName)) || s.device?.platform === 'windows';
                       const isChrome =
@@ -405,7 +516,10 @@ export function ActivityPage() {
                         <tr key={s.id}>
                           <td className={styles.domainCell}>
                             <div className={styles.appCellContainer}>
-                              <span className={styles.appNameTitle}>{displayName}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                <AppTypeIcon name={displayName} domain={s.domain} category={s.category} size={18} />
+                                <span className={styles.appNameTitle}>{displayName}</span>
+                              </div>
                               <div className={styles.appSubDetails}>
                                 {s.domain && <span className={styles.appDomainBadge}>{s.domain}</span>}
                                 {s.appName && !s.domain && <span className={styles.appDomainBadge}>{s.appName}</span>}
@@ -450,10 +564,15 @@ export function ActivityPage() {
                 <Spinner label="Loading context switches..." />
               </div>
             ) : allSwitches.length === 0 ? (
-              <div className={styles.emptyStateContainer} style={{ padding: '2.5rem' }}>
-                <p className={styles.emptyStateSubtitle}>
-                  No context switches recorded for this date.
+              <div className={styles.emptyStateContainer} style={{ padding: '2.5rem', textAlign: 'center' }}>
+                <p className={styles.emptyStateSubtitle} style={{ marginBottom: '1rem' }}>
+                  No context switches recorded for {selectedDate}.
                 </p>
+                {selectedDate !== today && (
+                  <Button variant="secondary" onClick={() => setSelectedDate(today)}>
+                    Jump to Today ({today})
+                  </Button>
+                )}
               </div>
             ) : (
               <>
@@ -493,7 +612,10 @@ export function ActivityPage() {
                         <tr key={sw.id}>
                           <td className={styles.domainCell}>
                             <div className={styles.appCellContainer}>
-                              <span className={styles.appNameTitle}>{fromParsed.appName}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <AppTypeIcon name={fromParsed.appName} size={16} />
+                                <span className={styles.appNameTitle}>{fromParsed.appName}</span>
+                              </div>
                               <div className={styles.appSubDetails}>
                                 {fromParsed.detail && (
                                   <span className={styles.appDomainBadge}>{fromParsed.detail}</span>
@@ -506,7 +628,10 @@ export function ActivityPage() {
                           </td>
                           <td className={styles.domainCell}>
                             <div className={styles.appCellContainer}>
-                              <span className={styles.appNameTitle}>{toParsed.appName}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <AppTypeIcon name={toParsed.appName} size={16} />
+                                <span className={styles.appNameTitle}>{toParsed.appName}</span>
+                              </div>
                               <div className={styles.appSubDetails}>
                                 {toParsed.detail && (
                                   <span className={styles.appDomainBadge}>{toParsed.detail}</span>
@@ -546,10 +671,15 @@ export function ActivityPage() {
                 <Spinner label="Loading badge notifications..." />
               </div>
             ) : allNotifs.length === 0 ? (
-              <div className={styles.emptyStateContainer} style={{ padding: '2.5rem' }}>
-                <p className={styles.emptyStateSubtitle}>
-                  No notification badge increments recorded for this date.
+              <div className={styles.emptyStateContainer} style={{ padding: '2.5rem', textAlign: 'center' }}>
+                <p className={styles.emptyStateSubtitle} style={{ marginBottom: '1rem' }}>
+                  No notification badge increments recorded for {selectedDate}.
                 </p>
+                {selectedDate !== today && (
+                  <Button variant="secondary" onClick={() => setSelectedDate(today)}>
+                    Jump to Today ({today})
+                  </Button>
+                )}
               </div>
             ) : (
               <>
@@ -578,7 +708,10 @@ export function ActivityPage() {
                         <tr key={n.id}>
                           <td className={styles.domainCell}>
                             <div className={styles.appCellContainer}>
-                              <span className={styles.appNameTitle}>{notifParsed.appName}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <AppTypeIcon name={notifParsed.appName} size={16} />
+                                <span className={styles.appNameTitle}>{notifParsed.appName}</span>
+                              </div>
                               <div className={styles.appSubDetails}>
                                 {notifParsed.detail && (
                                   <span className={styles.appDomainBadge}>{notifParsed.detail}</span>

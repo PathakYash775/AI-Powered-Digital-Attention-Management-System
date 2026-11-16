@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="pywebview-android">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/desktop-app/dist/AttentionTracker/_internal/webview/lib/pywebview-android.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

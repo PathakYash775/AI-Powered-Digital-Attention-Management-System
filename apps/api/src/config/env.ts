@@ -9,9 +9,10 @@ const envSchema = z
     REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
     CORS_ORIGINS: z
       .string()
-      .default('http://localhost:5173')
+      .default('http://localhost:5173,http://localhost:5174')
       .transform((val) => val.split(',').map((origin) => origin.trim()).filter(Boolean)),
     AI_SERVICE_URL: z.string().url().default('http://127.0.0.1:8001'),
+    GEMINI_API_KEY: z.string().optional(),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   });
 

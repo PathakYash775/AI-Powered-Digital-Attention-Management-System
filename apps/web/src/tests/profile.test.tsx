@@ -12,7 +12,7 @@ import type { Profile } from '../api/types';
 // Mock useAuth
 vi.mock('../features/auth/AuthContext', () => ({
   useAuth: () => ({
-    user: { id: 'user-demo-1', email: 'yashpathak086@gmail.com' },
+    user: { id: 'user-demo-1', email: 'example@gmail.com' },
     isAuthenticated: true,
     isLoading: false,
     logout: vi.fn(),

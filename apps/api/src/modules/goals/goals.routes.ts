@@ -20,6 +20,16 @@ function getUserId(req: Request): string {
   return req.userId;
 }
 
+goalsRouter.get('/habits', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const habits = await goalsService.getHabitProgress(userId);
+    res.status(200).json(habits);
+  } catch (err) {
+    next(err);
+  }
+});
+
 goalsRouter.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = getUserId(req);

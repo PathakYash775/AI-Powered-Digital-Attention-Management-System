@@ -1,9 +1,14 @@
 import { apiClient } from './client';
-import type { CreateGoalPayload, Goal, UpdateGoalPayload } from './types';
+import type { CreateGoalPayload, Goal, HabitProgressResponse, UpdateGoalPayload } from './types';
 
 export const goalsApi = {
   async getGoals(): Promise<Goal[]> {
     const res = await apiClient.get<Goal[]>('/goals');
+    return res.data;
+  },
+
+  async getHabitProgress(): Promise<HabitProgressResponse> {
+    const res = await apiClient.get<HabitProgressResponse>('/goals/habits');
     return res.data;
   },
 

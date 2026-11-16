@@ -18,6 +18,11 @@ import { activityRouter } from './modules/activity/activity.routes.js';
 import { statsRouter } from './modules/stats/stats.routes.js';
 import { analyticsRouter } from './modules/analytics/analytics.routes.js';
 import { focusRouter } from './modules/focus/focus.routes.js';
+import { recommendationsRouter } from './modules/recommendations/recommendations.routes.js';
+import { notificationsRouter } from './modules/notifications/notifications.routes.js';
+import { tasksRouter } from './modules/tasks/tasks.routes.js';
+import { aiRouter } from './modules/ai/ai.routes.js';
+import { adminRouter } from './modules/admin/admin.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -107,6 +112,11 @@ export function createApp(): Express {
   apiRouter.use('/stats', statsRouter);
   apiRouter.use('/analytics', analyticsRouter);
   apiRouter.use('/focus-sessions', focusRouter);
+  apiRouter.use('/recommendations', recommendationsRouter);
+  apiRouter.use('/notifications', notificationsRouter);
+  apiRouter.use('/tasks', tasksRouter);
+  apiRouter.use('/ai', aiRouter);
+  apiRouter.use('/admin', adminRouter);
 
   app.use('/api/v1', apiRouter);
 
@@ -114,7 +124,7 @@ export function createApp(): Express {
   app.post('/api/activity', async (req: Request, res: Response): Promise<void> => {
     try {
       const defaultUser = await prisma.user.findFirst({
-        where: { email: 'yashpathak086@gmail.com' },
+        where: { email: 'example@gmail.com' },
       }) || await prisma.user.findFirst();
 
       if (!defaultUser) {

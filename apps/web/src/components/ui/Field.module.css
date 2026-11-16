@@ -45,9 +45,9 @@
 .inputWrapper select:focus,
 .inputWrapper textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  background-color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+  background-color: var(--color-surface);
 }
 
 .inputWrapper input:disabled,

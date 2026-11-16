@@ -132,13 +132,19 @@ export function FocusSummaryWidget({ selectedDate }: FocusSummaryWidgetProps) {
 
       {/* 2. Open Summary Panel */}
       {isOpen && (
-        <div
-          className={styles.panel}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="my-focus-panel-title"
-          id="my-focus-summary-panel"
-        >
+        <>
+          <div
+            className={styles.backdrop}
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className={styles.panel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="my-focus-panel-title"
+            id="my-focus-summary-panel"
+          >
           {/* Header */}
           <div className={styles.panelHeader}>
             <div className={styles.panelTitleGroup}>
@@ -346,6 +352,7 @@ export function FocusSummaryWidget({ selectedDate }: FocusSummaryWidgetProps) {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );

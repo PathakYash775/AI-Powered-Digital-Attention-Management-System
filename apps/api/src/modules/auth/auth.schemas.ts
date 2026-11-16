@@ -18,6 +18,8 @@ export const loginSchema = z
       .string()
       .min(10, 'Password must be at least 10 characters')
       .max(128, 'Password must not exceed 128 characters'),
+    intendedRole: z.enum(['user', 'admin']).optional(),
+    selectedRole: z.enum(['user', 'admin']).optional(),
   })
   .strict();
 

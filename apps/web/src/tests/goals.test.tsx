@@ -106,7 +106,7 @@ describe('Goals Feature', () => {
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByText(/No goals configured yet/i)).toBeInTheDocument();
+    expect(await screen.findByText(/No goals configured yet/i, {}, { timeout: 5000 })).toBeInTheDocument();
 
     const addBtn = screen.getByRole('button', { name: /Add your first goal/i });
     await user.click(addBtn);

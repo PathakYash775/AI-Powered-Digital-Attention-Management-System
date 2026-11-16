@@ -1,7 +1,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../lib/errors.js';
 import { decodeCursor, encodeCursor } from '../../lib/pagination.js';
-import { recomputeUsageForDates } from '../usage/rollup.js';
+import { recomputeUsageForDates, getZonedDayBounds } from '../usage/rollup.js';
 import type { ActivityListQuery } from './activity.schemas.js';
 
 interface ResolvedDateRange {
@@ -9,16 +9,36 @@ interface ResolvedDateRange {
   toDate: Date;
 }
 
-function parseDateBoundary(dateStr: string, isEnd = false): Date {
+async function getUserTimezone(userId: string): Promise<string> {
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { timezone: true },
+    });
+    return profile?.timezone || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+}
+
+function parseDateBoundary(dateStr: string, isEnd = false, timeZone = 'UTC'): Date {
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    if (timeZone && timeZone !== 'UTC') {
+      try {
+        const { startUtc, endUtc } = getZonedDayBounds(dateStr, timeZone);
+        return isEnd ? endUtc : startUtc;
+      } catch {
+        // Fallback to UTC on error
+      }
+    }
     return new Date(`${dateStr}T${isEnd ? '23:59:59.999Z' : '00:00:00.000Z'}`);
   }
   return new Date(dateStr);
 }
 
-function resolveDateRange(from?: string, to?: string): ResolvedDateRange {
-  const toDate = to ? parseDateBoundary(to, true) : new Date();
-  const fromDate = from ? parseDateBoundary(from, false) : new Date(toDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+function resolveDateRange(from?: string, to?: string, timeZone = 'UTC'): ResolvedDateRange {
+  const toDate = to ? parseDateBoundary(to, true, timeZone) : new Date();
+  const fromDate = from ? parseDateBoundary(from, false, timeZone) : new Date(toDate.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   if (fromDate.getTime() > toDate.getTime()) {
     throw new AppError(400, 'VALIDATION_ERROR', 'from must be before or equal to to');
@@ -228,6 +248,7 @@ export const activityService = {
   },
 
   async getReport(userId: string, date: string) {
+    const timeZone = await getUserTimezone(userId);
     const summary = await this.getSummary(userId, date);
 
     const patterns = await prisma.hourlyUsagePattern.findMany({
@@ -235,12 +256,29 @@ export const activityService = {
       orderBy: { hour: 'asc' },
     });
 
-    const [yStr, mStr, dStr] = date.split('-');
-    const y = parseInt(yStr ?? '2026', 10);
-    const m = parseInt(mStr ?? '10', 10) - 1;
-    const d = parseInt(dStr ?? '12', 10);
-    const startOfDay = new Date(Date.UTC(y, m, d, 0, 0, 0));
-    const endOfDay = new Date(Date.UTC(y, m, d, 23, 59, 59));
+    let startOfDay: Date;
+    let endOfDay: Date;
+    if (timeZone && timeZone !== 'UTC') {
+      try {
+        const bounds = getZonedDayBounds(date, timeZone);
+        startOfDay = bounds.startUtc;
+        endOfDay = bounds.endUtc;
+      } catch {
+        const [yStr, mStr, dStr] = date.split('-');
+        const y = parseInt(yStr ?? '2026', 10);
+        const m = parseInt(mStr ?? '10', 10) - 1;
+        const d = parseInt(dStr ?? '12', 10);
+        startOfDay = new Date(Date.UTC(y, m, d, 0, 0, 0));
+        endOfDay = new Date(Date.UTC(y, m, d, 23, 59, 59));
+      }
+    } else {
+      const [yStr, mStr, dStr] = date.split('-');
+      const y = parseInt(yStr ?? '2026', 10);
+      const m = parseInt(mStr ?? '10', 10) - 1;
+      const d = parseInt(dStr ?? '12', 10);
+      startOfDay = new Date(Date.UTC(y, m, d, 0, 0, 0));
+      endOfDay = new Date(Date.UTC(y, m, d, 23, 59, 59));
+    }
 
     const [activities, focusSessions, goals] = await Promise.all([
       prisma.activityLog.findMany({
@@ -308,7 +346,8 @@ export const activityService = {
   },
 
   async getSessions(userId: string, query: ActivityListQuery) {
-    const { fromDate, toDate } = resolveDateRange(query.from, query.to);
+    const timeZone = await getUserTimezone(userId);
+    const { fromDate, toDate } = resolveDateRange(query.from, query.to, timeZone);
     const limit = query.limit;
 
     let cursorCondition: { OR: Array<Record<string, unknown>> } | undefined;
@@ -386,7 +425,8 @@ export const activityService = {
   },
 
   async getSwitches(userId: string, query: ActivityListQuery) {
-    const { fromDate, toDate } = resolveDateRange(query.from, query.to);
+    const timeZone = await getUserTimezone(userId);
+    const { fromDate, toDate } = resolveDateRange(query.from, query.to, timeZone);
     const limit = query.limit;
 
     let cursorCondition: { OR: Array<Record<string, unknown>> } | undefined;
@@ -456,7 +496,8 @@ export const activityService = {
   },
 
   async getNotifications(userId: string, query: ActivityListQuery) {
-    const { fromDate, toDate } = resolveDateRange(query.from, query.to);
+    const timeZone = await getUserTimezone(userId);
+    const { fromDate, toDate } = resolveDateRange(query.from, query.to, timeZone);
     const limit = query.limit;
 
     let cursorCondition: { OR: Array<Record<string, unknown>> } | undefined;

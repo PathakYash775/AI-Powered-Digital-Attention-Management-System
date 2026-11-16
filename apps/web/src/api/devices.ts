@@ -22,8 +22,17 @@ export const devicesApi = {
     return res.data;
   },
 
-  async autoLink(): Promise<{ deviceId: string; name: string; created: boolean }> {
-    const res = await apiClient.post<{ deviceId: string; name: string; created: boolean }>('/devices/auto-link');
+  async autoLink(
+    deviceName = 'Digital Attention Tracker (Chrome)',
+    platform: 'chrome' | 'windows' | 'android' = 'chrome',
+  ): Promise<{ deviceId: string; name: string; platform: string; deviceToken?: string; created: boolean }> {
+    const res = await apiClient.post<{
+      deviceId: string;
+      name: string;
+      platform: string;
+      deviceToken?: string;
+      created: boolean;
+    }>('/devices/auto-link', { deviceName, platform });
     return res.data;
   },
 };

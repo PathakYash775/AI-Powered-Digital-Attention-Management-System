@@ -27,11 +27,13 @@ enum GoalPeriod {
 enum DevicePlatform {
   chrome
   windows
+  android
 }
 
 enum ActivitySource {
   browser
   desktop
+  mobile
 }
 
 enum CategoryKind {
@@ -53,10 +55,31 @@ enum FocusSessionStatus {
   abandoned
 }
 
+enum TaskPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  completed
+  cancelled
+}
+
+enum Role {
+  user
+  admin
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String
+  role         Role     @default(user)
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 
   profile             Profile?
@@ -70,6 +93,81 @@ model User {
   focusSessions       FocusSession[]
   dailyUsageStats     DailyUsageStat[]
   hourlyUsagePatterns HourlyUsagePattern[]
+  recommendations     Recommendation[]
+  notificationPreference NotificationPreference?
+  smartAlerts         SmartAlert[]
+  tasks               Task[]
+  aiInsights          AIInsight[]
+  adminAuditLogs      AdminAuditLog[]        @relation("AdminAuditActions")
+}
+
+enum RecommendationCategory {
+  focus_improvement
+  productivity_tip
+  attention_recovery
+  pattern_optimization
+  distraction_reduction
+  productivity_improvement
+  break_scheduling
+  application_usage
+  task_prioritization
+  habit_formation
+}
+
+enum RecommendationStatus {
+  pending
+  accepted
+  dismissed
+  completed
+}
+
+model Recommendation {
+  id           String                 @id @default(uuid())
+  userId       String
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     RecommendationCategory
+  title        String
+  description  String
+  reason       String
+  actionType   String?
+  actionPayload Json?
+  impactScore  Int                    @default(5)
+  status       RecommendationStatus   @default(pending)
+  dismissedAt  DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@index([userId, status, createdAt(sort: Desc)])
+}
+
+model NotificationPreference {
+  userId                String   @id
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  distractionAlerts     Boolean  @default(true)
+  breakReminders        Boolean  @default(true)
+  focusSessionAlerts    Boolean  @default(true)
+  weeklyReportAlerts    Boolean  @default(true)
+  taskDeadlineAlerts    Boolean  @default(true)
+  recommendationAlerts  Boolean  @default(true)
+  quietHoursEnabled     Boolean  @default(false)
+  quietHoursStart       String   @default("22:00")
+  quietHoursEnd         String   @default("08:00")
+  updatedAt             DateTime @default(now()) @updatedAt
+}
+
+model SmartAlert {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  message     String
+  severity    String    @default("info")
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, read, createdAt(sort: Desc)])
 }
 
 model Profile {
@@ -201,6 +299,8 @@ model FocusSession {
   id                String             @id @default(uuid())
   userId            String
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId            String?
+  task              Task?              @relation(fields: [taskId], references: [id], onDelete: SetNull)
   plannedMin        Int
   startedAt         DateTime
   endedAt           DateTime?
@@ -209,6 +309,39 @@ model FocusSession {
   createdAt         DateTime           @default(now())
 
   @@index([userId, startedAt(sort: Desc)])
+}
+
+model Task {
+  id               String         @id @default(uuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  category         String         @default("work")
+  priority         TaskPriority   @default(medium)
+  status           TaskStatus     @default(todo)
+  estimatedMinutes Int?           @default(30)
+  deadline         DateTime?
+  completedAt      DateTime?
+  order            Int            @default(0)
+  focusSessions    FocusSession[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([userId, status, deadline])
+}
+
+model AIInsight {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  content     String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, type, createdAt(sort: Desc)])
 }
 
 model DailyUsageStat {
@@ -238,4 +371,17 @@ model HourlyUsagePattern {
   notificationCount Int
 
   @@id([userId, date, hour])
+}
+
+model AdminAuditLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     User     @relation("AdminAuditActions", fields: [adminId], references: [id], onDelete: Cascade)
+  action    String
+  targetId  String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([adminId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
 }

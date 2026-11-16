@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   useActiveFocusSession,
   useFocusSessionsList,
@@ -17,8 +18,14 @@ const PRESETS = [
 ];
 
 export function FocusPage() {
-  const [selectedMinutes, setSelectedMinutes] = useState(25);
-  const [remainingSeconds, setRemainingSeconds] = useState(25 * 60);
+  const [searchParams] = useSearchParams();
+  const taskId = searchParams.get('taskId') || undefined;
+  const taskTitle = searchParams.get('title') || undefined;
+  const plannedParam = searchParams.get('plannedMin');
+
+  const initialMin = plannedParam && !isNaN(Number(plannedParam)) ? Number(plannedParam) : 25;
+  const [selectedMinutes, setSelectedMinutes] = useState(initialMin);
+  const [remainingSeconds, setRemainingSeconds] = useState(initialMin * 60);
 
   // Queries
   const { data: activeSession, isLoading: isActiveLoading } = useActiveFocusSession();
@@ -29,6 +36,15 @@ export function FocusPage() {
   const stopMutation = useStopFocusSession();
 
   const isSessionActive = Boolean(activeSession && activeSession.status === 'active');
+
+  // If search param changes
+  useEffect(() => {
+    if (plannedParam && !isNaN(Number(plannedParam))) {
+      const p = Number(plannedParam);
+      setSelectedMinutes(p);
+      setRemainingSeconds(p * 60);
+    }
+  }, [plannedParam]);
 
   // Sync remaining seconds with active session or selected preset
   useEffect(() => {
@@ -51,7 +67,7 @@ export function FocusPage() {
   }, [isSessionActive, activeSession, selectedMinutes]);
 
   const handleStart = () => {
-    startMutation.mutate({ plannedMin: selectedMinutes });
+    startMutation.mutate({ plannedMin: selectedMinutes, taskId });
   };
 
   const handleStop = (status: 'completed' | 'abandoned') => {
@@ -80,7 +96,28 @@ export function FocusPage() {
         <p className={styles.subtitle}>
           Dedicated uninterrupted working blocks with active distraction tracking.
         </p>
+        {taskTitle && (
+          <div
+            style={{
+              marginTop: 12,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              color: '#1d4ed8',
+              padding: '6px 14px',
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            <span>🎯 Linked Task:</span>
+            <span>{decodeURIComponent(taskTitle)}</span>
+          </div>
+        )}
       </header>
+
 
       {/* Main Timer Clock Card */}
       <section className={styles.timerCard} aria-label="Focus Timer Clock">

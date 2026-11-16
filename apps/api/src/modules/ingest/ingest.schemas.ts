@@ -66,9 +66,35 @@ export const desktopActivityEventSchema = z
     { message: 'Duration must be less than or equal to 86400 seconds', path: ['endedAt'] },
   );
 
+export const mobileAppRegex = /^[a-zA-Z0-9][a-zA-Z0-9 ._-]{0,127}$/;
+
+export const mobileActivityEventSchema = z
+  .object({
+    clientEventId: z.string().min(1).max(64),
+    source: z.literal('mobile').optional().default('mobile'),
+    app: z.string().min(1).max(128).regex(mobileAppRegex, 'Invalid mobile app format'),
+    startedAt: z.string().refine(isValidTimestamp, {
+      message: 'Timestamp must not be older than 7 days or more than 5 minutes in the future',
+    }),
+    endedAt: z.string().refine(isValidTimestamp, {
+      message: 'Timestamp must not be older than 7 days or more than 5 minutes in the future',
+    }),
+    idle: z.boolean(),
+  })
+  .strict()
+  .refine(
+    (e) => new Date(e.startedAt).getTime() < new Date(e.endedAt).getTime(),
+    { message: 'startedAt must be before endedAt', path: ['endedAt'] },
+  )
+  .refine(
+    (e) => (new Date(e.endedAt).getTime() - new Date(e.startedAt).getTime()) / 1000 <= 86400,
+    { message: 'Duration must be less than or equal to 86400 seconds', path: ['endedAt'] },
+  );
+
 export const activityEventSchema = z.union([
   desktopActivityEventSchema,
   browserActivityEventSchema,
+  mobileActivityEventSchema,
 ]);
 
 export const ingestActivitySchema = z

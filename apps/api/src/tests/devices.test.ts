@@ -133,4 +133,199 @@ describe('Devices Module', () => {
     expect(dev).not.toHaveProperty('tokenHash');
     expect(dev).not.toHaveProperty('token');
   });
+
+  it('POST /devices/register registers device and returns deviceToken', async () => {
+    const { user } = await createTestUser('regtest@example.com', 'Password123!', 'Reg User');
+    const token = await getAuthToken(user.id);
+
+    const codeRes = await request(app)
+      .post('/api/v1/devices/pairing-code')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(codeRes.status).toBe(200);
+    const { code } = codeRes.body;
+
+    const regRes = await request(app)
+      .post('/api/v1/devices/register')
+      .send({ code, deviceName: 'Chrome Extension Test', platform: 'chrome' });
+
+    expect(regRes.status).toBe(200);
+    expect(regRes.body).toHaveProperty('deviceId');
+    expect(regRes.body).toHaveProperty('deviceToken');
+    expect(regRes.body.deviceToken.startsWith('atn_')).toBe(true);
+    expect(regRes.body.platform).toBe('chrome');
+  });
+
+  it('POST /devices/heartbeat succeeds with valid device token and updates lastSeenAt', async () => {
+    const { user } = await createTestUser('hbtest@example.com', 'Password123!', 'HB User');
+    const { device, token: deviceToken } = await createTestDevice(user.id, 'Heartbeat Chrome');
+
+    const hbRes = await request(app)
+      .post('/api/v1/devices/heartbeat')
+      .set('Authorization', `Bearer ${deviceToken}`);
+
+    expect(hbRes.status).toBe(200);
+    expect(hbRes.body).toHaveProperty('status', 'ok');
+    expect(hbRes.body).toHaveProperty('deviceId', device.id);
+    expect(hbRes.body).toHaveProperty('serverTime');
+  });
+
+  it('POST /devices/heartbeat rejects invalid or unauthenticated requests with 401', async () => {
+    const hbRes = await request(app)
+      .post('/api/v1/devices/heartbeat')
+      .set('Authorization', 'Bearer atn_invalid_nonexistent_token_123456');
+
+    expect(hbRes.status).toBe(401);
+    expect(hbRes.body.error.code).toBe('UNAUTHENTICATED');
+  });
+
+  it('GET /devices/status accurately reflects device connection recency', async () => {
+    const { user } = await createTestUser('statustest@example.com', 'Password123!', 'Status User');
+    const token = await getAuthToken(user.id);
+
+    // Initial status without any device
+    const res1 = await request(app)
+      .get('/api/v1/devices/status')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res1.status).toBe(200);
+    expect(res1.body.connected).toBe(false);
+
+    // Create a device (not yet communicated, lastSeenAt: null)
+    const { token: devToken } = await createTestDevice(user.id, 'Active Extension', 'chrome');
+
+    const resBefore = await request(app)
+      .get('/api/v1/devices/status')
+      .set('Authorization', `Bearer ${token}`);
+    expect(resBefore.body.connected).toBe(false);
+
+    // Send heartbeat from the device
+    const hbRes = await request(app)
+      .post('/api/v1/devices/heartbeat')
+      .set('Authorization', `Bearer ${devToken}`);
+    expect(hbRes.status).toBe(200);
+
+    // Device should now be connected
+    const resAfter = await request(app)
+      .get('/api/v1/devices/status')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(resAfter.status).toBe(200);
+    expect(resAfter.body.connected).toBe(true);
+    expect(resAfter.body.isRecentlyActive).toBe(true);
+    expect(resAfter.body.activeDevice).toBeDefined();
+    expect(resAfter.body.activeDevice.name).toBe('Active Extension');
+  });
+
+  it('pairs Windows Desktop Tracker, accepts heartbeat, and handles disconnect', async () => {
+    const { user } = await createTestUser('wintest@example.com', 'Password123!', 'Win User');
+    const token = await getAuthToken(user.id);
+
+    // 1. Generate pairing code
+    const codeRes = await request(app)
+      .post('/api/v1/devices/pairing-code')
+      .set('Authorization', `Bearer ${token}`);
+    expect(codeRes.status).toBe(200);
+    const { code } = codeRes.body;
+
+    // 2. Pair Windows Tracker
+    const pairRes = await request(app)
+      .post('/api/v1/devices/pair')
+      .send({
+        code,
+        deviceName: 'DESKTOP-YASH (Windows Desktop)',
+        platform: 'windows',
+      });
+
+    expect(pairRes.status).toBe(200);
+    expect(pairRes.body.platform).toBe('windows');
+    expect(pairRes.body.deviceToken.startsWith('atn_')).toBe(true);
+    const winToken = pairRes.body.deviceToken;
+    const winDeviceId = pairRes.body.deviceId;
+
+    // 3. Heartbeat from Windows Tracker
+    const hbRes = await request(app)
+      .post('/api/v1/devices/heartbeat')
+      .set('Authorization', `Bearer ${winToken}`);
+    expect(hbRes.status).toBe(200);
+    expect(hbRes.body.status).toBe('ok');
+
+    // 4. Verify in GET /devices
+    const listRes = await request(app)
+      .get('/api/v1/devices')
+      .set('Authorization', `Bearer ${token}`);
+    expect(listRes.status).toBe(200);
+    const foundWin = listRes.body.find((d: any) => d.id === winDeviceId);
+    expect(foundWin).toBeDefined();
+    expect(foundWin.platform).toBe('windows');
+    expect(foundWin.lastSeenAt).toBeDefined();
+    expect(foundWin.revokedAt).toBeNull();
+
+    // 5. Windows Tracker unpairs/disconnects
+    const discRes = await request(app)
+      .post('/api/v1/devices/disconnect')
+      .set('Authorization', `Bearer ${winToken}`);
+    expect(discRes.status).toBe(200);
+    expect(discRes.body.success).toBe(true);
+
+    // 6. Heartbeat after disconnect is rejected with 401
+    const hbAfter = await request(app)
+      .post('/api/v1/devices/heartbeat')
+      .set('Authorization', `Bearer ${winToken}`);
+    expect(hbAfter.status).toBe(401);
+  });
+
+  it('pairs Android Mobile Tracker, accepts heartbeat, and auto-links mobile device', async () => {
+    const { user } = await createTestUser('androiddev@example.com', 'Password123!', 'Android User');
+    const token = await getAuthToken(user.id);
+
+    // 1. Generate pairing code
+    const codeRes = await request(app)
+      .post('/api/v1/devices/pairing-code')
+      .set('Authorization', `Bearer ${token}`);
+    expect(codeRes.status).toBe(200);
+    const { code } = codeRes.body;
+
+    // 2. Pair Android device with platform: 'android'
+    const pairRes = await request(app)
+      .post('/api/v1/devices/pair')
+      .send({
+        code,
+        deviceName: 'Pixel 8 Pro (Android)',
+        platform: 'android',
+      });
+    expect(pairRes.status).toBe(200);
+    expect(pairRes.body.platform).toBe('android');
+    expect(pairRes.body.deviceToken.startsWith('atn_')).toBe(true);
+    const androidToken = pairRes.body.deviceToken;
+    const androidDeviceId = pairRes.body.deviceId;
+
+    // 3. Heartbeat from Android Tracker
+    const hbRes = await request(app)
+      .post('/api/v1/devices/heartbeat')
+      .set('Authorization', `Bearer ${androidToken}`);
+    expect(hbRes.status).toBe(200);
+    expect(hbRes.body.status).toBe('ok');
+
+    // 4. Test authenticated auto-link for mobile
+    const autoLinkRes = await request(app)
+      .post('/api/v1/devices/auto-link')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        deviceName: 'Galaxy Tab (Android)',
+        platform: 'android',
+      });
+    expect(autoLinkRes.status).toBe(200);
+    expect(autoLinkRes.body.platform).toBe('android');
+    expect(autoLinkRes.body.deviceToken.startsWith('atn_')).toBe(true);
+
+    // 5. Verify devices in GET /devices
+    const listRes = await request(app)
+      .get('/api/v1/devices')
+      .set('Authorization', `Bearer ${token}`);
+    expect(listRes.status).toBe(200);
+    const foundAndroid = listRes.body.find((d: any) => d.id === androidDeviceId);
+    expect(foundAndroid).toBeDefined();
+    expect(foundAndroid.platform).toBe('android');
+  });
 });

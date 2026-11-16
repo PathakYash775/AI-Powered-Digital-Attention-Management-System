@@ -8,6 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Spinner } from '../../components/ui/Spinner';
 import { GoalForm } from './GoalForm';
+import { HabitFormationBar } from './HabitFormationBar';
 import type { GoalFormValues } from './schemas';
 import styles from './GoalsPage.module.css';
 
@@ -49,7 +50,7 @@ function parseGoalMeta(goal: Goal): GoalMeta {
         displayName: rest.join(':').trim(),
         themeClass: styles.goalThemeEducation,
         icon: '🎯',
-        badgeColor: '#2563eb',
+        badgeColor: 'var(--color-primary)',
       };
     }
     const lower = raw.toLowerCase();
@@ -65,7 +66,7 @@ function parseGoalMeta(goal: Goal): GoalMeta {
         displayName: lower.includes('dsa') && !lower.includes('problem') ? 'DSA problem solving' : raw,
         themeClass: styles.goalThemeEducation,
         icon: '🎯',
-        badgeColor: '#2563eb',
+        badgeColor: 'var(--color-primary)',
       };
     }
     if (
@@ -356,10 +357,13 @@ export function GoalsPage() {
         )}
       </header>
 
+      {/* Habit Formation & Streak Monitoring */}
+      <HabitFormationBar />
+
       {/* KPI Top Insights Banner */}
       <section className={styles.kpiGrid} aria-label="Goal overview metrics">
         <div className={styles.kpiCard}>
-          <div className={styles.kpiIconBox} style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
+          <div className={styles.kpiIconBox} style={{ backgroundColor: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
@@ -863,7 +867,7 @@ export function GoalsPage() {
                     </svg>
                   </div>
                   <div className={styles.scoreValueRow}>
-                    <span className={styles.bigScoreNumber} style={{ color: '#2563eb' }}>
+                    <span className={styles.bigScoreNumber} style={{ color: 'var(--color-primary)' }}>
                       {productivityScore}
                     </span>
                     <span className={styles.scoreOutOf}>/ 100</span>
@@ -873,7 +877,7 @@ export function GoalsPage() {
                       className={styles.scoreBarFill}
                       style={{
                         width: `${productivityScore}%`,
-                        backgroundColor: '#2563eb',
+                        backgroundColor: 'var(--color-primary)',
                       }}
                     />
                   </div>

@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const startFocusSessionSchema = z
   .object({
     plannedMin: z.number().int().min(5).max(480),
+    taskId: z.string().uuid().optional().nullable(),
   })
   .strict();
 

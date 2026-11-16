@@ -31,7 +31,21 @@ class TrackingEngine:
     ) -> None:
         self.config = config
         self.buffer = buffer or EventBuffer()
-        self.sync_client = sync_client or SyncClient(self.config.api_base_url, self.buffer)
+
+        try:
+            from app.pairing import get_stored_device_token, clear_device_token
+            token_getter = get_stored_device_token
+            token_clearer = clear_device_token
+        except Exception:
+            token_getter = None
+            token_clearer = None
+
+        self.sync_client = sync_client or SyncClient(
+            self.config.api_base_url,
+            self.buffer,
+            token_getter=token_getter,
+            token_clearer=token_clearer,
+        )
 
         self._get_fg_app = get_fg_app_fn or winapi.get_foreground_app
         self._get_idle_sec = get_idle_sec_fn or winapi.get_idle_seconds
@@ -176,7 +190,9 @@ class TrackingEngine:
         while not self._stop_event.is_set():
             if not self._paused:
                 try:
-                    self.sync_client.sync_once()
+                    res = self.sync_client.sync_once()
+                    if res.get("status") == "auth_revoked":
+                        self.pause()
                 except Exception:
                     pass
             self._stop_event.wait(timeout=60.0)
@@ -195,6 +211,7 @@ class TrackingEngine:
             "pending_activities": pending_act,
             "pending_switches": pending_sw,
             "last_sync_time": self.sync_client.last_sync_time,
+            "last_heartbeat_time": getattr(self.sync_client, "last_heartbeat_time", None),
             "last_error": self.sync_client.last_error,
         }
 

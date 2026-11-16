@@ -23,7 +23,7 @@ function createInitialState(): DbState {
   const users: Array<User & { passwordHash: string; displayName: string }> = [
     {
       id: 'user-demo-1',
-      email: 'yashpathak086@gmail.com',
+      email: 'example@gmail.com',
       passwordHash: 'Password123!',
       displayName: 'Yash Pathak',
     },
