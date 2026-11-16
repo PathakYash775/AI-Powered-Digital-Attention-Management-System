@@ -4,6 +4,7 @@ import type {
   ActivityReport,
   ActivitySession,
   ActivitySummary,
+  HistoryResponse,
   PaginatedResult,
   PaginationParams,
   TaskSwitch,
@@ -46,6 +47,13 @@ export const activityApi = {
         params,
       },
     );
+    return res.data;
+  },
+
+  async getHistory(days = 14): Promise<HistoryResponse> {
+    const res = await apiClient.get<HistoryResponse>('/activity/history', {
+      params: { days },
+    });
     return res.data;
   },
 };

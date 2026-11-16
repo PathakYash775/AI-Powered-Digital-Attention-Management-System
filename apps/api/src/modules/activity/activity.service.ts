@@ -561,4 +561,140 @@ export const activityService = {
 
     return { items, nextCursor };
   },
+
+  async getHistory(userId: string, days = 14) {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - (days + 2) * 24 * 60 * 60 * 1000);
+
+    const [allFocusSessions, allDailyStats, allActivityLogs, allSwitches] = await Promise.all([
+      prisma.focusSession.findMany({
+        where: {
+          userId,
+          startedAt: { gte: windowStart },
+        },
+        orderBy: { startedAt: 'desc' },
+      }),
+      prisma.dailyUsageStat.findMany({
+        where: {
+          userId,
+          date: { gte: windowStart.toISOString().slice(0, 10) },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      prisma.activityLog.findMany({
+        where: {
+          userId,
+          startedAt: { gte: windowStart },
+        },
+        select: {
+          id: true,
+          startedAt: true,
+          durationSec: true,
+          appName: true,
+          domain: true,
+          category: true,
+        },
+        orderBy: { startedAt: 'desc' },
+      }),
+      prisma.contextSwitch.findMany({
+        where: {
+          userId,
+          switchedAt: { gte: windowStart },
+        },
+        select: {
+          id: true,
+          switchedAt: true,
+        },
+      }),
+    ]);
+
+    const dailyItems = [];
+    let totalRecordedDays = 0;
+
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().slice(0, 10);
+
+      let label: string;
+      if (i === 0) {
+        label = 'Today';
+      } else if (i === 1) {
+        label = 'Yesterday';
+      } else {
+        label = d.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+      }
+
+      const dayStart = new Date(`${dateStr}T00:00:00.000Z`);
+      const dayEnd = new Date(`${dateStr}T23:59:59.999Z`);
+
+      const daySessions = allFocusSessions.filter(
+        (s) => s.startedAt >= dayStart && s.startedAt <= dayEnd,
+      );
+      const focusSec = daySessions.reduce((acc, s) => acc + (s.durationMin * 60), 0);
+      const focusSessionsCount = daySessions.length;
+
+      const stat = allDailyStats.find((s) => s.date === dateStr);
+
+      const dayLogs = allActivityLogs.filter(
+        (l) => l.startedAt >= dayStart && l.startedAt <= dayEnd,
+      );
+      const recordCount = dayLogs.length;
+
+      const daySwitches = allSwitches.filter(
+        (sw) => sw.switchedAt >= dayStart && sw.switchedAt <= dayEnd,
+      );
+      const switchCount = stat?.switchCount ?? daySwitches.length;
+
+      const screenTimeSec = stat?.totalScreenSec ?? dayLogs.reduce((acc, l) => acc + l.durationSec, 0);
+
+      const activityMap: Record<string, { name: string; durationSec: number; category: string }> = {};
+      for (const log of dayLogs) {
+        const name = log.appName || (log.domain ? resolveAppName(log.domain) : 'General Activity');
+        if (!activityMap[name]) {
+          activityMap[name] = { name, durationSec: 0, category: log.category };
+        }
+        activityMap[name].durationSec += log.durationSec;
+      }
+      const topActivities = Object.values(activityMap)
+        .sort((a, b) => b.durationSec - a.durationSec)
+        .slice(0, 5);
+
+      const hasData = focusSessionsCount > 0 || recordCount > 0 || screenTimeSec > 0;
+      if (hasData) {
+        totalRecordedDays++;
+      }
+
+      dailyItems.push({
+        date: dateStr,
+        label,
+        dayIndex: i,
+        hasData,
+        focusSec,
+        focusSessionsCount,
+        screenTimeSec,
+        recordCount,
+        switchCount,
+        focusSessions: daySessions.map((s) => ({
+          id: s.id,
+          startedAt: s.startedAt,
+          endedAt: s.endedAt,
+          durationMin: s.durationMin,
+          plannedMin: s.plannedMin,
+          status: s.status,
+        })),
+        topActivities,
+      });
+    }
+
+    return {
+      windowDays: days,
+      totalRecordedDays,
+      days: dailyItems,
+    };
+  },
 };

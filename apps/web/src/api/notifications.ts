@@ -35,6 +35,11 @@ export const notificationsApi = {
     return res.data;
   },
 
+  async clearRead(): Promise<{ success: boolean }> {
+    const res = await apiClient.delete<{ success: boolean }>('/notifications/alerts/clear-read');
+    return res.data;
+  },
+
   async deleteAlert(id: string): Promise<{ success: boolean }> {
     const res = await apiClient.delete<{ success: boolean }>(`/notifications/alerts/${id}`);
     return res.data;

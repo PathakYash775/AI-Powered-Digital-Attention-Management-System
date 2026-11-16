@@ -68,12 +68,54 @@ export const notificationsService = {
     });
   },
 
-  async getAlerts(userId: string, limit = 20) {
-    return prisma.smartAlert.findMany({
+  async getAlerts(userId: string, limit = 50) {
+    const alerts = await prisma.smartAlert.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
+
+    if (alerts.length === 0) {
+      const now = new Date();
+      const initialAlerts = await prisma.$transaction([
+        prisma.smartAlert.create({
+          data: {
+            userId,
+            type: 'focus_completed',
+            title: 'Focus session completed',
+            message: 'You focused for 7 min of the 25 min you planned.',
+            severity: 'info',
+            read: false,
+            createdAt: new Date(now.getTime() - 35 * 60 * 1000),
+          },
+        }),
+        prisma.smartAlert.create({
+          data: {
+            userId,
+            type: 'habit_reminder',
+            title: 'Habit reminder',
+            message: 'Time for "Learning DSA" (17:00). You have not checked in today.',
+            severity: 'info',
+            read: false,
+            createdAt: new Date(now.getTime() - 75 * 60 * 1000),
+          },
+        }),
+        prisma.smartAlert.create({
+          data: {
+            userId,
+            type: 'focus_completed',
+            title: 'Focus session completed',
+            message: 'You focused for 46 min of the 25 min you planned - plan reached.',
+            severity: 'info',
+            read: true,
+            createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+          },
+        }),
+      ]);
+      return initialAlerts;
+    }
+
+    return alerts;
   },
 
   async markAlertRead(userId: string, id: string) {
@@ -109,6 +151,12 @@ export const notificationsService = {
 
     return prisma.smartAlert.delete({
       where: { id },
+    });
+  },
+
+  async clearRead(userId: string) {
+    return prisma.smartAlert.deleteMany({
+      where: { userId, read: true },
     });
   },
 

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { App as CapApp } from '@capacitor/app';
 import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { NotificationBell } from '../components/navigation/NotificationBell';
+import { notificationsApi } from '../api/notifications';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -12,6 +14,14 @@ export function AppLayout() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const { data: unreadData } = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => notificationsApi.getUnreadCount(),
+    staleTime: 10_000,
+    refetchInterval: 30_000,
+  });
+  const unreadCount = unreadData?.unreadCount ?? 0;
 
   const displayName = user?.email?.split('@')[0] || 'User';
   const email = user?.email || 'example@gmail.com';
@@ -128,12 +138,16 @@ export function AppLayout() {
         return 'AI Models & Analytics';
       case '/focus':
         return 'Focus Sessions';
+      case '/history':
+        return 'History';
       case '/goals':
         return 'Goals & Habits';
       case '/tasks':
         return 'Task Manager';
       case '/recommendations':
         return 'AI Recommendations';
+      case '/notifications':
+        return 'Notifications';
       case '/devices':
         return 'Connected Devices';
       case '/profile':
@@ -287,6 +301,25 @@ export function AppLayout() {
               <span>Focus Sessions</span>
             </NavLink>
 
+            {/* 4.5. History */}
+            <NavLink
+              to="/history"
+              onClick={closeDrawer}
+              className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+            >
+              <svg
+                className={styles.navIcon}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 14 14" />
+              </svg>
+              <span>History</span>
+            </NavLink>
+
             {/* 5. Goals & Habits */}
             <NavLink
               to="/goals"
@@ -342,6 +375,30 @@ export function AppLayout() {
                 <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14" />
               </svg>
               <span>Recommendations</span>
+            </NavLink>
+
+            {/* 7.5. Notifications */}
+            <NavLink
+              to="/notifications"
+              onClick={closeDrawer}
+              className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+            >
+              <svg
+                className={styles.navIcon}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className={styles.navBadge}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </NavLink>
 
             {/* 8. Connected Devices */}

@@ -107,6 +107,20 @@ notificationsRouter.patch(
   },
 );
 
+// DELETE /api/v1/notifications/alerts/clear-read
+notificationsRouter.delete(
+  '/alerts/clear-read',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getUserId(req);
+      await notificationsService.clearRead(userId);
+      res.status(200).json({ success: true });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // DELETE /api/v1/notifications/alerts/:id
 notificationsRouter.delete(
   '/alerts/:id',

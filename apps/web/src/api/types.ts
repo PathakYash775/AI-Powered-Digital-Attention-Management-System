@@ -616,3 +616,38 @@ export interface AdminAuditLogsResponse {
   }>;
 }
 
+export interface HistoryFocusSession {
+  id: string;
+  startedAt: string;
+  endedAt?: string | null;
+  durationMin: number;
+  plannedMin: number;
+  status: 'active' | 'completed' | 'abandoned';
+}
+
+export interface HistoryTopActivity {
+  name: string;
+  durationSec: number;
+  category: string;
+}
+
+export interface HistoryDayItem {
+  date: string;
+  label: string;
+  dayIndex: number;
+  hasData: boolean;
+  focusSec: number;
+  focusSessionsCount: number;
+  screenTimeSec: number;
+  recordCount: number;
+  switchCount: number;
+  focusSessions: HistoryFocusSession[];
+  topActivities: HistoryTopActivity[];
+}
+
+export interface HistoryResponse {
+  windowDays: number;
+  totalRecordedDays: number;
+  days: HistoryDayItem[];
+}
+

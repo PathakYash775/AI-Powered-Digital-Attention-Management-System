@@ -21,6 +21,20 @@ function getUserId(req: Request): string {
 }
 
 activityRouter.get(
+  '/history',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getUserId(req);
+      const days = req.query.days ? parseInt(req.query.days as string, 10) : 14;
+      const history = await activityService.getHistory(userId, isNaN(days) ? 14 : days);
+      res.status(200).json(history);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+activityRouter.get(
   '/summary',
   validate({ query: activitySummaryQuerySchema }),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {

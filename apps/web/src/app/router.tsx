@@ -38,6 +38,12 @@ const TasksPage = lazy(() =>
 const RecommendationsPage = lazy(() =>
   import('../features/recommendations/RecommendationsPage').then((m) => ({ default: m.RecommendationsPage })),
 );
+const HistoryPage = lazy(() =>
+  import('../features/history/HistoryPage').then((m) => ({ default: m.HistoryPage })),
+);
+const NotificationsPage = lazy(() =>
+  import('../features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
+);
 
 const AdminLayout = lazy(() =>
   import('../features/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })),
@@ -75,9 +81,11 @@ export function AppRouter() {
             <Route path="/activity" element={<ActivityPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/focus" element={<FocusPage />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="/goals" element={<GoalsPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/recommendations" element={<RecommendationsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/devices" element={<DevicesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>

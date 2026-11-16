@@ -1,0 +1,233 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-text, #ffffff);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.35rem 0;
+}
+
+.subtitle {
+  font-size: 0.88rem;
+  color: var(--color-sidebar-muted, #94a3b8);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.actionBtn {
+  background-color: var(--color-surface, #121a2d);
+  border: 1px solid var(--color-border, #1e293b);
+  color: var(--color-text, #ffffff);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionBtn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-primary, #7047eb);
+}
+
+.filterCard {
+  background-color: var(--color-surface, #121a2d);
+  border: 1px solid var(--color-border, #1e293b);
+  border-radius: var(--radius-lg, 12px);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text, #ffffff);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxInput {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  accent-color: var(--color-primary, #7047eb);
+  cursor: pointer;
+}
+
+.notificationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notificationCard {
+  background-color: var(--color-surface, #121a2d);
+  border: 1px solid var(--color-border, #1e293b);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.notificationCard:hover {
+  border-color: rgba(112, 71, 235, 0.4);
+}
+
+.notificationCardUnread {
+  border-left: 3px solid var(--color-primary, #7047eb);
+  background: linear-gradient(90deg, rgba(112, 71, 235, 0.05) 0%, var(--color-surface, #121a2d) 100%);
+}
+
+.cardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cardTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text, #ffffff);
+}
+
+.newBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.1rem 0.38rem;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.cardMessage {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.metaRow {
+  font-size: 0.75rem;
+  color: var(--color-sidebar-muted, #94a3b8);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.openLink {
+  color: var(--color-primary, #7047eb);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.markReadBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-primary, #7047eb);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm, 6px);
+  transition: all 0.15s ease;
+}
+
+.markReadBtn:hover {
+  background-color: rgba(112, 71, 235, 0.1);
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm, 6px);
+  transition: all 0.15s ease;
+}
+
+.deleteBtn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.emptyState {
+  background-color: var(--color-surface, #121a2d);
+  border: 1px dashed var(--color-border, #1e293b);
+  border-radius: var(--radius-lg, 12px);
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: var(--color-sidebar-muted, #94a3b8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .notificationCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardActions {
+    width: 100%;
+    justify-content: flex-end;
+    border-top: 1px solid var(--color-border, #1e293b);
+    padding-top: 0.65rem;
+    margin-top: 0.35rem;
+  }
+}
