@@ -9,6 +9,7 @@ export interface GoalFormProps {
   onSubmit: (values: GoalFormValues) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  errorMessage?: string | null;
 }
 
 const GOAL_TYPES: Array<{
@@ -63,6 +64,7 @@ export function GoalForm({
   onSubmit,
   onCancel,
   isSubmitting = false,
+  errorMessage,
 }: GoalFormProps) {
   const {
     register,
@@ -100,8 +102,32 @@ export function GoalForm({
     setValue('targetValue', val);
   };
 
+  const onFormSubmit = (data: GoalFormValues) => {
+    const sanitized: GoalFormValues = {
+      type: data.type,
+      period: data.period,
+      targetValue: Number(data.targetValue),
+      customName:
+        data.type === 'custom' && data.customName && data.customName.trim() !== ''
+          ? data.customName.trim()
+          : undefined,
+    };
+    onSubmit(sanitized);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={styles.formContainer} noValidate>
+    <form onSubmit={handleSubmit(onFormSubmit)} className={styles.formContainer} noValidate>
+      {errorMessage && (
+        <div className={styles.errorBanner} role="alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {/* 1. Goal Type Cards Selector */}
       <div className={styles.fieldGroup}>
         <span className={styles.fieldLabel}>

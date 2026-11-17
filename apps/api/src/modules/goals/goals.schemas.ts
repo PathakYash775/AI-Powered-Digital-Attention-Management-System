@@ -14,7 +14,13 @@ export const createGoalSchema = z
     type: goalTypeEnum,
     period: goalPeriodEnum,
     targetValue: z.number().int().min(1).max(10080),
-    customName: z.string().trim().min(1).max(100).optional().nullable(),
+    customName: z
+      .string()
+      .trim()
+      .max(100)
+      .transform((val) => (val === '' ? null : val))
+      .optional()
+      .nullable(),
   })
   .strict();
 
@@ -23,7 +29,13 @@ export const updateGoalSchema = z
     type: goalTypeEnum.optional(),
     period: goalPeriodEnum.optional(),
     targetValue: z.number().int().min(1).max(10080).optional(),
-    customName: z.string().trim().min(1).max(100).optional().nullable(),
+    customName: z
+      .string()
+      .trim()
+      .max(100)
+      .transform((val) => (val === '' ? null : val))
+      .optional()
+      .nullable(),
   })
   .strict();
 

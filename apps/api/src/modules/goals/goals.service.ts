@@ -34,7 +34,7 @@ export const goalsService = {
         type: input.type,
         period: input.period,
         targetValue: input.targetValue,
-        customName: input.customName ?? null,
+        customName: input.customName && input.customName.trim() !== '' ? input.customName.trim() : null,
       },
       select: goalSelect,
     });

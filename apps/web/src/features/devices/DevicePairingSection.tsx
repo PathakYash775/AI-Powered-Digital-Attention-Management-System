@@ -166,6 +166,8 @@ export function DevicePairingSection() {
             </div>
           )}
 
+          <span className={styles.syncPulse}>⚡ Auto-sync: 60s</span>
+
           <button
             type="button"
             className={styles.generateButton}
@@ -240,6 +242,7 @@ export function DevicePairingSection() {
           <span className={styles.statValue}>
             {status?.todayStats?.activityCount ?? 0} events synced today
             {status?.todayStats?.lastDomain ? ` (latest: ${status.todayStats.lastDomain})` : ''}
+            {' · active auto-sync (60s)'}
           </span>
         </div>
       </div>
@@ -261,12 +264,12 @@ export function DevicePairingSection() {
           <span className={styles.statValue}>{formatLastActive(windowsDevice?.lastSeenAt)}</span>
         </div>
         <div className={styles.statItem}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               <span className={styles.statLabel}>Data Synchronization</span>
               <span className={styles.statValue}>
                 {isWindowsConnected
-                  ? 'Active background session tracking'
+                  ? 'Active background session tracking (auto-sync every 60s)'
                   : windowsDevice
                   ? 'Offline / Idle'
                   : 'Not paired'}
@@ -306,12 +309,12 @@ export function DevicePairingSection() {
           <span className={styles.statValue}>{formatLastActive(androidDevice?.lastSeenAt)}</span>
         </div>
         <div className={styles.statItem}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               <span className={styles.statLabel}>Data Synchronization</span>
               <span className={styles.statValue}>
                 {isAndroidConnected
-                  ? 'Active background session tracking'
+                  ? 'Active background session tracking (auto-sync every 60s)'
                   : androidDevice
                   ? 'Offline / Idle'
                   : 'Not paired'}

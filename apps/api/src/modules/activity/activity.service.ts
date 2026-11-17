@@ -635,7 +635,14 @@ export const activityService = {
       const daySessions = allFocusSessions.filter(
         (s) => s.startedAt >= dayStart && s.startedAt <= dayEnd,
       );
-      const focusSec = daySessions.reduce((acc, s) => acc + (s.durationMin * 60), 0);
+      const getSessionDurationMin = (s: { startedAt: Date; endedAt: Date | null; plannedMin: number }): number => {
+        if (s.endedAt) {
+          const diffMs = new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime();
+          return Math.max(1, Math.round(diffMs / 60000));
+        }
+        return s.plannedMin || 25;
+      };
+      const focusSec = daySessions.reduce((acc, s) => acc + (getSessionDurationMin(s) * 60), 0);
       const focusSessionsCount = daySessions.length;
 
       const stat = allDailyStats.find((s) => s.date === dateStr);
@@ -683,7 +690,7 @@ export const activityService = {
           id: s.id,
           startedAt: s.startedAt,
           endedAt: s.endedAt,
-          durationMin: s.durationMin,
+          durationMin: getSessionDurationMin(s),
           plannedMin: s.plannedMin,
           status: s.status,
         })),

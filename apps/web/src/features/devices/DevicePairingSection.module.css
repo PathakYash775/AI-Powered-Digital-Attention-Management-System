@@ -253,6 +253,19 @@
   font-weight: 500;
 }
 
+.syncPulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+}
+
 .leadDescription {
   font-size: 0.925rem;
   line-height: 1.6;

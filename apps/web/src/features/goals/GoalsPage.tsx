@@ -169,12 +169,24 @@ export function GoalsPage() {
     refetchInterval: 10000,
   });
 
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: goalsApi.createGoal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsCreating(false);
+      setCreateError(null);
+    },
+    onError: (err: any) => {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.details?.[0]?.message ||
+        err?.message ||
+        'Failed to save goal. Please check values and try again.';
+      setCreateError(msg);
     },
   });
 
@@ -184,6 +196,15 @@ export function GoalsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setEditingGoal(null);
+      setUpdateError(null);
+    },
+    onError: (err: any) => {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.details?.[0]?.message ||
+        err?.message ||
+        'Failed to update goal. Please check values and try again.';
+      setUpdateError(msg);
     },
   });
 
@@ -435,8 +456,12 @@ export function GoalsPage() {
           <h2 className={styles.sectionTitle}>Add New Goal</h2>
           <GoalForm
             onSubmit={(vals) => createMutation.mutate(vals)}
-            onCancel={() => setIsCreating(false)}
+            onCancel={() => {
+              setIsCreating(false);
+              setCreateError(null);
+            }}
             isSubmitting={createMutation.isPending}
+            errorMessage={createError}
           />
         </section>
       )}
@@ -448,8 +473,12 @@ export function GoalsPage() {
           <GoalForm
             initialGoal={editingGoal}
             onSubmit={(vals) => updateMutation.mutate({ id: editingGoal.id, values: vals })}
-            onCancel={() => setEditingGoal(null)}
+            onCancel={() => {
+              setEditingGoal(null);
+              setUpdateError(null);
+            }}
             isSubmitting={updateMutation.isPending}
+            errorMessage={updateError}
           />
         </section>
       )}
